@@ -351,6 +351,13 @@ export const mvpSeed: MvpSeed = {
       type: 'team',
       name: 'Backend Platform',
     },
+    {
+      id: 'unit-sre',
+      organizationId,
+      parentId: 'unit-platform',
+      type: 'team',
+      name: 'Site Reliability',
+    },
   ],
   people: [
     {

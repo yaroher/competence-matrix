@@ -1,5 +1,6 @@
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -10,6 +11,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const sourceKind = pgEnum('source_kind', [
   'system_seed',
@@ -22,10 +24,14 @@ export const validationStatus = pgEnum('validation_status', ['draft', 'reviewed'
 export const assessmentSource = pgEnum('assessment_source', ['self', 'manager', 'expert', 'final']);
 export const criticality = pgEnum('criticality', ['low', 'medium', 'high']);
 
+export const organizationStatus = pgEnum('organization_status', ['active', 'archived']);
+export const orgUnitType = pgEnum('org_unit_type', ['company', 'department', 'team']);
+export const orgUnitStatus = pgEnum('org_unit_status', ['active', 'archived']);
+
 export const organizations = pgTable('organizations', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
-  status: text('status').notNull().default('active'),
+  status: organizationStatus('status').notNull().default('active'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -33,12 +39,14 @@ export const orgUnits = pgTable('org_units', {
   id: text('id').primaryKey(),
   organizationId: text('organization_id').notNull().references(() => organizations.id),
   parentId: text('parent_id'),
-  type: text('type').notNull(),
+  type: orgUnitType('type').notNull(),
   name: text('name').notNull(),
-  status: text('status').notNull().default('active'),
+  status: orgUnitStatus('status').notNull().default('active'),
 }, (table) => [
   index('org_units_organization_idx').on(table.organizationId),
   index('org_units_parent_idx').on(table.parentId),
+  uniqueIndex('org_units_organization_parent_name_uq').on(table.organizationId, table.parentId, table.name),
+  check('org_units_no_self_parent', sql`${table.parentId} IS NULL OR ${table.parentId} <> ${table.id}`),
 ]);
 
 export const people = pgTable('people', {
