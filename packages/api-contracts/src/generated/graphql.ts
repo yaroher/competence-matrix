@@ -14,6 +14,12 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type Actor = {
+  readonly __typename?: 'Actor';
+  readonly person: Maybe<Person>;
+  readonly user: User;
+};
+
 export type Assessment = {
   readonly __typename?: 'Assessment';
   readonly gaps: ReadonlyArray<Gap>;
@@ -186,6 +192,7 @@ export type Person = {
 export type Query = {
   readonly __typename?: 'Query';
   readonly assessment: Maybe<Assessment>;
+  readonly currentActor: Actor;
   readonly dashboard: DashboardSummary;
   readonly developmentPlan: Maybe<DevelopmentPlan>;
   readonly matrix: Maybe<Matrix>;
@@ -252,6 +259,15 @@ export type TaskCompetencyLink = {
   readonly criticality: Scalars['String']['output'];
   readonly id: Scalars['ID']['output'];
   readonly neededOnEntry: Scalars['Boolean']['output'];
+};
+
+export type User = {
+  readonly __typename?: 'User';
+  readonly email: Scalars['String']['output'];
+  readonly id: Scalars['ID']['output'];
+  readonly person: Maybe<Person>;
+  readonly role: Scalars['String']['output'];
+  readonly status: Scalars['String']['output'];
 };
 
 export type MvpSliceQueryVariables = Exact<{ [key: string]: never; }>;

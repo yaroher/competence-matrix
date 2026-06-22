@@ -30,6 +30,18 @@ export interface Person {
   status: 'active' | 'inactive';
 }
 
+export type SystemRole = 'employee' | 'manager' | 'expert' | 'hr' | 'methodology_admin';
+export type UserStatus = 'active' | 'disabled';
+
+export interface User {
+  id: Id;
+  organizationId: Id;
+  personId?: Id;
+  email: string;
+  role: SystemRole;
+  status: UserStatus;
+}
+
 export interface Assignment {
   id: Id;
   personId: Id;
@@ -220,6 +232,7 @@ export interface MvpSeed {
   organization: Organization;
   orgUnits: OrgUnit[];
   people: Person[];
+  users: User[];
   assignments: Assignment[];
   categories: CompetencyCategory[];
   competencies: Competency[];

@@ -27,6 +27,8 @@ export const criticality = pgEnum('criticality', ['low', 'medium', 'high']);
 export const organizationStatus = pgEnum('organization_status', ['active', 'archived']);
 export const orgUnitType = pgEnum('org_unit_type', ['company', 'department', 'team']);
 export const orgUnitStatus = pgEnum('org_unit_status', ['active', 'archived']);
+export const systemRole = pgEnum('system_role', ['employee', 'manager', 'expert', 'hr', 'methodology_admin']);
+export const userStatus = pgEnum('user_status', ['active', 'disabled']);
 
 export const organizations = pgTable('organizations', {
   id: text('id').primaryKey(),
@@ -58,6 +60,20 @@ export const people = pgTable('people', {
 }, (table) => [
   uniqueIndex('people_email_uq').on(table.email),
   index('people_organization_idx').on(table.organizationId),
+]);
+
+export const users = pgTable('users', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull().references(() => organizations.id),
+  personId: text('person_id').references(() => people.id),
+  email: text('email').notNull(),
+  role: systemRole('role').notNull(),
+  status: userStatus('status').notNull().default('active'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('users_email_uq').on(table.email),
+  index('users_organization_idx').on(table.organizationId),
+  index('users_person_idx').on(table.personId),
 ]);
 
 export const roleFamilies = pgTable('role_families', {

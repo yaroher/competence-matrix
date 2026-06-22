@@ -22,6 +22,7 @@ import {
   roleTasks,
   roles,
   taskCompetencyLinks,
+  users,
 } from '@comatrix/db';
 import { calculateGaps, mvpSeed } from '@comatrix/domain';
 import type {
@@ -36,6 +37,7 @@ import type {
   MatrixRevision,
   MvpSeed,
   Organization,
+  User,
 } from '@comatrix/domain';
 
 function asArray<T>(value: unknown): T[] {
@@ -67,6 +69,7 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
       organizationRows,
       orgUnitRows,
       peopleRows,
+      userRows,
       assignmentRows,
       categoryRows,
       competencyRows,
@@ -89,6 +92,7 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
       db.select().from(organizations),
       db.select().from(orgUnits),
       db.select().from(people),
+      db.select().from(users),
       db.select().from(assignments),
       db.select().from(competencyCategories),
       db.select().from(competencies),
@@ -207,6 +211,14 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
         type: unit.type as never,
       })),
       people: peopleRows.map((person) => ({ ...person, status: person.status as never })),
+      users: userRows.map((user): User => ({
+        id: user.id,
+        organizationId: user.organizationId,
+        personId: user.personId ?? undefined,
+        email: user.email,
+        role: user.role as User['role'],
+        status: user.status as User['status'],
+      })),
       assignments: assignmentRows.map((assignment) => ({
         ...assignment,
         managerPersonId: assignment.managerPersonId ?? undefined,

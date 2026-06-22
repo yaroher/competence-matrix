@@ -15,6 +15,13 @@
       "when": 1782127723236,
       "tag": "0001_cute_loki",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782129283078,
+      "tag": "0002_omniscient_queen_noir",
+      "breakpoints": true
     }
   ]
 }

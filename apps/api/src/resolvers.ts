@@ -2,6 +2,21 @@ import { schema } from '@comatrix/api-contracts';
 import { calculateGaps, mvpSeed, type MvpSeed } from '@comatrix/domain';
 import { createSchema } from 'graphql-yoga';
 
+export interface ComatrixContext {
+  currentUserId: string;
+}
+
+export const DEFAULT_DEV_USER_ID = 'user-alexey';
+
+export function createComatrixContext(initial?: Partial<ComatrixContext>) {
+  return (ctx: { request?: { headers?: { get(name: string): string | null } } }): ComatrixContext => ({
+    currentUserId:
+      initial?.currentUserId ??
+      ctx.request?.headers?.get('x-comatrix-user-id') ??
+      DEFAULT_DEV_USER_ID,
+  });
+}
+
 export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
   function competencyById(id: string) {
     const competency = seed.competencies.find((item) => item.id === id);
@@ -17,6 +32,14 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
       throw new Error(`Unknown person ${id}`);
     }
     return person;
+  }
+
+  function userById(id: string) {
+    const user = seed.users.find((item) => item.id === id);
+    if (!user) {
+      throw new Error(`Unknown user ${id}`);
+    }
+    return user;
   }
 
   function roleProfileById(id: string) {
@@ -38,6 +61,12 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
         dashboard: () => seed.dashboard,
         organization: () => seed.organization,
         ontology: () => seed,
+        currentActor: (_parent, _args, ctx: ComatrixContext) => {
+          const userId = ctx?.currentUserId ?? DEFAULT_DEV_USER_ID;
+          const user = userById(userId);
+          const person = user.personId ? (seed.people.find((item) => item.id === user.personId) ?? null) : null;
+          return { user, person };
+        },
         roleProfile: (_parent, args: { id: string }) => roleProfileById(args.id),
         matrix: (_parent, args: { id: string }) => matrixById(args.id),
         assessment: (_parent, args: { id: string }) => assessmentById(args.id),
@@ -47,6 +76,10 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
       CompetencyCategory: {
         competencies: (category: { id: string }) =>
           seed.competencies.filter((competency) => competency.categoryId === category.id),
+      },
+      User: {
+        person: (user: { personId?: string }) =>
+          user.personId ? (seed.people.find((person) => person.id === user.personId) ?? null) : null,
       },
       RoleProfile: {
         role: (profile: { roleId: string }) => seed.roles.find((role) => role.id === profile.roleId),

@@ -3,6 +3,7 @@ export const schema = /* GraphQL */ `
     dashboard: DashboardSummary!
     organization: Organization!
     ontology: Ontology!
+    currentActor: Actor!
     roleProfile(id: ID!): RoleProfile
     matrix(id: ID!): Matrix
     assessment(id: ID!): Assessment
@@ -22,6 +23,19 @@ export const schema = /* GraphQL */ `
     id: ID!
     name: String!
     status: String!
+  }
+
+  type User {
+    id: ID!
+    email: String!
+    role: String!
+    status: String!
+    person: Person
+  }
+
+  type Actor {
+    user: User!
+    person: Person
   }
 
   type Ontology {

@@ -24,6 +24,7 @@ import {
   roleTasks,
   roles,
   taskCompetencyLinks,
+  users,
 } from './schema.js';
 
 function date(value: string) {
@@ -53,6 +54,7 @@ async function main() {
       grades,
       roles,
       role_families,
+      users,
       people,
       org_units,
       level_definitions,
@@ -64,6 +66,7 @@ async function main() {
   await db.insert(levelDefinitions).values(mvpSeed.levels);
   await db.insert(orgUnits).values(mvpSeed.orgUnits);
   await db.insert(people).values(mvpSeed.people);
+  await db.insert(users).values(mvpSeed.users);
   await db.insert(roleFamilies).values(mvpSeed.roleFamilies);
   await db.insert(roles).values(mvpSeed.roles);
   await db.insert(grades).values(mvpSeed.grades);

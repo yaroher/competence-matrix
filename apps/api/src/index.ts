@@ -2,7 +2,7 @@ import http from 'node:http';
 import { createYoga } from 'graphql-yoga';
 import { config } from './config.js';
 import { loadMvpDataSource } from './data.js';
-import { createExecutableSchema } from './resolvers.js';
+import { createExecutableSchema, createComatrixContext } from './resolvers.js';
 
 const mvpData = await loadMvpDataSource(config.COMATRIX_DATA_SOURCE, config.COMATRIX_DATABASE_URL);
 const yoga = createYoga({
@@ -12,6 +12,7 @@ const yoga = createYoga({
     origin: ['http://localhost:4200'],
     credentials: false,
   },
+  context: createComatrixContext(),
 });
 
 const server = http.createServer((request, response) => {
