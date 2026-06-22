@@ -41,7 +41,62 @@
       </div>
     </header>
 
-    @if (selectedNav() === 'Admin') {
+    @if (selectedNav() === 'Calibration') {
+      <section class="admin-grid" aria-label="Calibration sessions">
+        @if (people(); as pa) {
+          @if (calibrationSessions().length) {
+            @for (session of calibrationSessions(); track session.id) {
+              <article class="panel admin-detail-panel" style="grid-column: 1 / -1">
+                <div class="panel-header">
+                  <div>
+                    <span class="eyebrow">Calibration session</span>
+                    <h2>{{ session.name }}</h2>
+                  </div>
+                  <z-badge zType="secondary" zShape="pill">{{ session.status }}</z-badge>
+                </div>
+
+                @if (session.decisions.length) {
+                  <table z-table zType="bordered" zSize="compact" class="calibration-table">
+                    <thead z-table-header>
+                      <tr z-table-row>
+                        <th z-table-head>Competency</th>
+                        <th z-table-head>Original</th>
+                        <th z-table-head>Calibrated</th>
+                        <th z-table-head>Diff</th>
+                        <th z-table-head>Reason</th>
+                      </tr>
+                    </thead>
+                    <tbody z-table-body>
+                      @for (decision of session.decisions; track decision.id) {
+                        <tr z-table-row>
+                          <td z-table-cell>{{ decision.score.competency.name }}</td>
+                          <td z-table-cell>{{ decision.originalLevel }}</td>
+                          <td z-table-cell>{{ decision.calibratedLevel }}</td>
+                          <td z-table-cell>{{ decision.diff > 0 ? '+' : '' }}{{ decision.diff }}</td>
+                          <td z-table-cell>{{ decision.reason }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                } @else {
+                  <p class="admin-muted">No decisions recorded yet for this session.</p>
+                }
+              </article>
+            }
+          } @else {
+            <article class="panel admin-empty">
+              <strong>No calibration sessions</strong>
+              <span>Calibration sessions will appear here once created.</span>
+            </article>
+          }
+        } @else {
+          <article class="panel admin-empty">
+            <strong>Loading calibration</strong>
+            <span>Waiting for GraphQL API on /graphql</span>
+          </article>
+        }
+      </section>
+    } @else if (selectedNav() === 'Admin') {
       <section class="admin-grid" aria-label="People and organization admin">
         @if (people(); as pa) {
           @if (adminError()) {

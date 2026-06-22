@@ -60,4 +60,24 @@ query PeopleAssignments {
       }
     }
   }
+  calibrationSessions {
+    id
+    name
+    status
+    decisions {
+      id
+      originalLevel
+      calibratedLevel
+      diff
+      reason
+      score {
+        id
+        competency {
+          id
+          code
+          name
+        }
+      }
+    }
+  }
 }

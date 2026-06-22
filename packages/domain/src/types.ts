@@ -232,6 +232,22 @@ export interface DevelopmentPlan {
   items: DevelopmentPlanItem[];
 }
 
+export interface CalibrationSession {
+  id: Id;
+  organizationId: Id;
+  name: string;
+  status: 'open' | 'closed';
+}
+
+export interface CalibrationDecision {
+  id: Id;
+  sessionId: Id;
+  assessmentScoreId: Id;
+  originalLevel: number;
+  calibratedLevel: number;
+  reason: string;
+}
+
 export interface DashboardSummary {
   activeCycleName: string;
   ontologyDomains: number;
@@ -261,6 +277,8 @@ export interface MvpSeed {
   matrixRevisions: MatrixRevision[];
   assessments: Assessment[];
   developmentPlans: DevelopmentPlan[];
+  calibrationSessions: CalibrationSession[];
+  calibrationDecisions: CalibrationDecision[];
   dashboard: DashboardSummary;
 }
 

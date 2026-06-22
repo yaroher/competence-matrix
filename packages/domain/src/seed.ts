@@ -598,6 +598,32 @@ export const mvpSeed: MvpSeed = {
         })),
     },
   ],
+  calibrationSessions: [
+    {
+      id: 'calibration-pilot-v1',
+      organizationId,
+      name: 'Backend Go Senior pilot calibration',
+      status: 'open',
+    },
+  ],
+  calibrationDecisions: [
+    {
+      id: 'calibration-decision-1',
+      sessionId: 'calibration-pilot-v1',
+      assessmentScoreId: 'score-final-1',
+      originalLevel: assessment.scores.find((score) => score.id === 'score-final-1')?.level ?? 3,
+      calibratedLevel: 4,
+      reason: 'Promoted after design review evidence; original final level was conservative.',
+    },
+    {
+      id: 'calibration-decision-2',
+      sessionId: 'calibration-pilot-v1',
+      assessmentScoreId: 'score-final-2',
+      originalLevel: assessment.scores.find((score) => score.id === 'score-final-2')?.level ?? 3,
+      calibratedLevel: 4,
+      reason: 'Recent mentoring evidence supports the higher level.',
+    },
+  ],
   dashboard: {
     activeCycleName: 'v0.1 Backend Go Senior pilot',
     ontologyDomains: categories.length,

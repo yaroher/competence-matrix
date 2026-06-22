@@ -126,6 +126,10 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
         assessment: (_parent, args: { id: string }) => assessmentById(args.id),
         developmentPlan: (_parent, args: { assessmentId: string }) =>
           seed.developmentPlans.find((plan) => plan.assessmentId === args.assessmentId) ?? null,
+        calibrationSessions: (_parent, _args, ctx: ComatrixContext) => {
+          const orgId = actorOrgId(ctx);
+          return seed.calibrationSessions.filter((session) => session.organizationId === orgId);
+        },
       },
       Mutation: {
         createPerson: (_parent, args: { input: { fullName: string; email: string } }, ctx: ComatrixContext) => {
@@ -250,6 +254,23 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
       DevelopmentPlanItem: {
         competency: (item: { competencyId: string }) => competencyById(item.competencyId),
         owner: (item: { ownerPersonId: string }) => personById(item.ownerPersonId),
+      },
+      CalibrationSession: {
+        decisions: (session: { id: string }) =>
+          seed.calibrationDecisions.filter((decision) => decision.sessionId === session.id),
+      },
+      CalibrationDecision: {
+        diff: (decision: { calibratedLevel: number; originalLevel: number }) =>
+          decision.calibratedLevel - decision.originalLevel,
+        score: (decision: { assessmentScoreId: string }) => {
+          const score = seed.assessments
+            .flatMap((assessment) => assessment.scores)
+            .find((item) => item.id === decision.assessmentScoreId);
+          if (!score) {
+            throw new Error(`Unknown assessment score ${decision.assessmentScoreId}`);
+          }
+          return score;
+        },
       },
     },
   });

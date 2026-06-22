@@ -50,6 +50,7 @@ export class AppComponent {
   readonly orgUnitCount = computed(() => this.people()?.orgUnits?.length ?? 0);
 
   readonly adminPeople = computed(() => this.people()?.people ?? []);
+  readonly calibrationSessions = computed(() => this.people()?.calibrationSessions ?? []);
   readonly selectedAdminPersonId = signal<string | null>(null);
   readonly selectedAdminPerson = computed(() => {
     const id = this.selectedAdminPersonId();

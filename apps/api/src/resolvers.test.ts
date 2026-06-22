@@ -115,3 +115,22 @@ describe('people and assignment operations', () => {
     expect(result.data.archiveAssignment.status).toBe('archived');
   });
 });
+
+describe('calibration', () => {
+  it('exposes calibration sessions with decisions preserving the original level', async () => {
+    const json = await run(
+      '{ calibrationSessions { id name status decisions { id originalLevel calibratedLevel diff reason score { id competency { name } } } } }',
+    );
+
+    expect(json.errors).toBeUndefined();
+    const sessions = json.data.calibrationSessions;
+    expect(sessions).toHaveLength(1);
+    const session = sessions[0];
+    expect(session.name).toContain('pilot');
+    expect(session.decisions.length).toBeGreaterThanOrEqual(1);
+    const decision = session.decisions[0];
+    expect(decision.originalLevel).not.toBe(decision.calibratedLevel);
+    expect(decision.diff).toBe(decision.calibratedLevel - decision.originalLevel);
+    expect(decision.score.competency.name).toBeTruthy();
+  });
+});

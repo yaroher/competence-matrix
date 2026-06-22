@@ -6,6 +6,8 @@ import {
   assessmentScores,
   assessments,
   assignments,
+  calibrationDecisions,
+  calibrationSessions,
   competencies,
   competencyCategories,
   competencyRelations,
@@ -37,6 +39,8 @@ async function main() {
 
   await db.execute(sql`
     truncate table
+      calibration_decisions,
+      calibration_sessions,
       assessment_scores,
       development_plan_items,
       development_plans,
@@ -140,6 +144,8 @@ async function main() {
       })),
     ),
   );
+  await db.insert(calibrationSessions).values(mvpSeed.calibrationSessions);
+  await db.insert(calibrationDecisions).values(mvpSeed.calibrationDecisions);
 
   await pool.end();
 }

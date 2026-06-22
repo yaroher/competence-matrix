@@ -2,6 +2,8 @@ import {
   assessmentScores,
   assessments,
   assignments,
+  calibrationDecisions,
+  calibrationSessions,
   competencies,
   competencyCategories,
   competencyRelations,
@@ -86,6 +88,8 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
       matrixRequirementRows,
       assessmentRows,
       assessmentScoreRows,
+      calibrationSessionRows,
+      calibrationDecisionRows,
       developmentPlanRows,
       developmentPlanItemRows,
     ] = await Promise.all([
@@ -109,6 +113,8 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
       db.select().from(matrixRequirements),
       db.select().from(assessments),
       db.select().from(assessmentScores),
+      db.select().from(calibrationSessions),
+      db.select().from(calibrationDecisions),
       db.select().from(developmentPlans),
       db.select().from(developmentPlanItems),
     ]);
@@ -249,6 +255,20 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
       matrixRevisions: matrixRevisionsData,
       assessments: assessmentsData,
       developmentPlans: developmentPlansData,
+      calibrationSessions: calibrationSessionRows.map((session) => ({
+        id: session.id,
+        organizationId: session.organizationId,
+        name: session.name,
+        status: session.status as 'open' | 'closed',
+      })),
+      calibrationDecisions: calibrationDecisionRows.map((decision) => ({
+        id: decision.id,
+        sessionId: decision.sessionId,
+        assessmentScoreId: decision.assessmentScoreId,
+        originalLevel: decision.originalLevel,
+        calibratedLevel: decision.calibratedLevel,
+        reason: decision.reason,
+      })),
       dashboard: {
         activeCycleName: `${activeRoleProfile?.name ?? 'v0.1'} pilot`,
         ontologyDomains: categoryRows.length,

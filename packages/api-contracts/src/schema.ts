@@ -13,6 +13,7 @@ export const schema = /* GraphQL */ `
     matrix(id: ID!): Matrix
     assessment(id: ID!): Assessment
     developmentPlan(assessmentId: ID!): DevelopmentPlan
+    calibrationSessions: [CalibrationSession!]!
   }
 
   type Mutation {
@@ -251,6 +252,22 @@ export const schema = /* GraphQL */ `
     owner: Person!
     status: String!
     dueDate: String!
+  }
+
+  type CalibrationSession {
+    id: ID!
+    name: String!
+    status: String!
+    decisions: [CalibrationDecision!]!
+  }
+
+  type CalibrationDecision {
+    id: ID!
+    originalLevel: Int!
+    calibratedLevel: Int!
+    diff: Int!
+    reason: String!
+    score: AssessmentScore!
   }
 `;
 

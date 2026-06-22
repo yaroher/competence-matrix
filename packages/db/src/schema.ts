@@ -30,6 +30,7 @@ export const orgUnitStatus = pgEnum('org_unit_status', ['active', 'archived']);
 export const systemRole = pgEnum('system_role', ['employee', 'manager', 'expert', 'hr', 'methodology_admin']);
 export const userStatus = pgEnum('user_status', ['active', 'disabled']);
 export const assignmentStatus = pgEnum('assignment_status', ['active', 'archived']);
+export const calibrationSessionStatus = pgEnum('calibration_session_status', ['open', 'closed']);
 
 export const organizations = pgTable('organizations', {
   id: text('id').primaryKey(),
@@ -291,4 +292,27 @@ export const developmentPlanItems = pgTable('development_plan_items', {
   index('development_plan_items_plan_idx').on(table.developmentPlanId),
   index('development_plan_items_competency_idx').on(table.competencyId),
   index('development_plan_items_owner_idx').on(table.ownerPersonId),
+]);
+
+export const calibrationSessions = pgTable('calibration_sessions', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull().references(() => organizations.id),
+  name: text('name').notNull(),
+  status: calibrationSessionStatus('status').notNull().default('open'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index('calibration_sessions_organization_idx').on(table.organizationId),
+]);
+
+export const calibrationDecisions = pgTable('calibration_decisions', {
+  id: text('id').primaryKey(),
+  sessionId: text('session_id').notNull().references(() => calibrationSessions.id),
+  assessmentScoreId: text('assessment_score_id').notNull().references(() => assessmentScores.id),
+  originalLevel: integer('original_level').notNull(),
+  calibratedLevel: integer('calibrated_level').notNull(),
+  reason: text('reason').notNull().default(''),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index('calibration_decisions_session_idx').on(table.sessionId),
+  uniqueIndex('calibration_decisions_session_score_uq').on(table.sessionId, table.assessmentScoreId),
 ]);
