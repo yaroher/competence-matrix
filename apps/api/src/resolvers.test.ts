@@ -236,3 +236,45 @@ describe('import and export', () => {
     expect(report.competenciesParsed).toBe(1);
   });
 });
+
+describe('audit trail', () => {
+  it('writes an audit event for every critical write mutation with actor and timestamp', async () => {
+    await run('mutation { createPerson(input: { fullName: "A", email: "a@x.test" }) { id } }');
+    await run('mutation { archiveAssignment(id: "assignment-alexey") { id } }');
+    await run('mutation { setDefaultScoringRule(id: "scoring-default") { id } }');
+    await run('mutation { finalizeAssessment(id: "assessment-alexey-backend-go-senior") { id status } }');
+    await run('mutation { activateMatrix(id: "matrix-backend-go-senior") { id status } }');
+
+    const audit = await run(
+      '{ auditEvents(limit: 50) { action entityType entityId actorUserId createdAt } }',
+    );
+    expect(audit.errors).toBeUndefined();
+    const events = audit.data.auditEvents;
+    const actions = events.map((e: { action: string }) => e.action);
+    for (const expected of [
+      'person_created',
+      'assignment_archived',
+      'scoring_rule_default_set',
+      'assessment_finalized',
+      'matrix_activated',
+    ]) {
+      expect(actions, `mutation must produce ${expected}`).toContain(expected);
+    }
+    for (const event of events) {
+      expect(event.actorUserId).toBeTruthy();
+      expect(event.createdAt).toBeTruthy();
+    }
+  });
+
+  it('regression: finalizeAssessment produces an audit event for that assessment', async () => {
+    const result = await run(
+      'mutation { finalizeAssessment(id: "assessment-alexey-backend-go-senior") { id } }',
+    );
+    expect(result.errors).toBeUndefined();
+
+    const audit = await run(
+      '{ auditEvents(entityType: "assessment", entityId: "assessment-alexey-backend-go-senior") { action } }',
+    );
+    expect(audit.data.auditEvents.map((e: { action: string }) => e.action)).toContain('assessment_finalized');
+  });
+});

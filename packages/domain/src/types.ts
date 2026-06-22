@@ -141,6 +141,29 @@ export interface ScoringRule {
   status: 'draft' | 'active' | 'archived';
 }
 
+export type AuditAction =
+  | 'person_created'
+  | 'assignment_created'
+  | 'assignment_archived'
+  | 'scoring_rule_default_set'
+  | 'competencies_imported'
+  | 'assessment_finalized'
+  | 'matrix_activated'
+  | 'calibration_decision_added';
+
+export interface AuditEvent {
+  id: Id;
+  organizationId: Id;
+  actorUserId?: Id;
+  actorPersonId?: Id;
+  action: AuditAction;
+  entityType: string;
+  entityId: Id;
+  summary: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
+
 export interface RoleFamily {
   id: Id;
   organizationId: Id;
@@ -310,6 +333,7 @@ export interface MvpSeed {
   developmentPlans: DevelopmentPlan[];
   calibrationSessions: CalibrationSession[];
   calibrationDecisions: CalibrationDecision[];
+  auditEvents: AuditEvent[];
   dashboard: DashboardSummary;
 }
 

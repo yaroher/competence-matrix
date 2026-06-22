@@ -39,6 +39,16 @@ export const levelDimension = pgEnum('level_dimension', [
   'impact',
 ]);
 export const methodologyStatus = pgEnum('methodology_status', ['draft', 'active', 'archived']);
+export const auditAction = pgEnum('audit_action', [
+  'person_created',
+  'assignment_created',
+  'assignment_archived',
+  'scoring_rule_default_set',
+  'competencies_imported',
+  'assessment_finalized',
+  'matrix_activated',
+  'calibration_decision_added',
+]);
 
 export const organizations = pgTable('organizations', {
   id: text('id').primaryKey(),
@@ -358,4 +368,22 @@ export const calibrationDecisions = pgTable('calibration_decisions', {
 }, (table) => [
   index('calibration_decisions_session_idx').on(table.sessionId),
   uniqueIndex('calibration_decisions_session_score_uq').on(table.sessionId, table.assessmentScoreId),
+]);
+
+export const auditEvents = pgTable('audit_events', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull().references(() => organizations.id),
+  actorUserId: text('actor_user_id'),
+  actorPersonId: text('actor_person_id'),
+  action: auditAction('action').notNull(),
+  entityType: text('entity_type').notNull(),
+  entityId: text('entity_id').notNull(),
+  summary: text('summary').notNull().default(''),
+  metadata: jsonb('metadata').notNull().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index('audit_events_organization_idx').on(table.organizationId),
+  index('audit_events_entity_idx').on(table.entityType, table.entityId),
+  index('audit_events_actor_idx').on(table.actorUserId),
+  index('audit_events_created_idx').on(table.createdAt),
 ]);

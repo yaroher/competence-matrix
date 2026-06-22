@@ -1,5 +1,5 @@
 import { schema } from '@comatrix/api-contracts';
-import { applyCompetencyImport, calculateGaps, currentAssignmentForPerson, directReportsOf, managerTeamCoverage, mvpSeed, organizationGapSummary, parseCompetencyImport, toGapExportRows, toMatrixRequirementExportRows, type MvpSeed } from '@comatrix/domain';
+import { applyCompetencyImport, calculateGaps, currentAssignmentForPerson, directReportsOf, managerTeamCoverage, mvpSeed, organizationGapSummary, parseCompetencyImport, recordAuditEvent, toGapExportRows, toMatrixRequirementExportRows, type MvpSeed } from '@comatrix/domain';
 import { createSchema } from 'graphql-yoga';
 
 export interface ComatrixContext {
@@ -68,6 +68,11 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
   function actorOrgId(ctx: ComatrixContext): string {
     const user = userById(ctx.currentUserId ?? DEFAULT_DEV_USER_ID);
     return user.organizationId;
+  }
+
+  function auditActor(ctx: ComatrixContext) {
+    const user = userById(ctx.currentUserId ?? DEFAULT_DEV_USER_ID);
+    return { userId: user.id, personId: user.personId, organizationId: user.organizationId };
   }
 
   function requireSameOrg(ctx: ComatrixContext, recordOrgId: string) {
@@ -171,6 +176,16 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           }
           return toGapExportRows(seed, args.assessmentId);
         },
+        auditEvents: (_parent, args: { entityType?: string | null; entityId?: string | null; limit?: number | null }, ctx: ComatrixContext) => {
+          const orgId = actorOrgId(ctx);
+          const limit = args.limit ?? 20;
+          return seed.auditEvents
+            .filter((event) => event.organizationId === orgId)
+            .filter((event) => !args.entityType || event.entityType === args.entityType)
+            .filter((event) => !args.entityId || event.entityId === args.entityId)
+            .slice(-limit)
+            .reverse();
+        },
       },
       Mutation: {
         createPerson: (_parent, args: { input: { fullName: string; email: string } }, ctx: ComatrixContext) => {
@@ -183,6 +198,12 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
             status: 'active' as const,
           };
           seed.people.push(person);
+          recordAuditEvent(seed, auditActor(ctx), 'person_created', {
+            entityType: 'person',
+            entityId: person.id,
+            summary: `Created person ${person.fullName}`,
+            metadata: { email: person.email },
+          });
           return person;
         },
         createAssignment: (
@@ -213,6 +234,11 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
             status: 'active' as const,
           };
           seed.assignments.push(assignment);
+          recordAuditEvent(seed, auditActor(ctx), 'assignment_created', {
+            entityType: 'assignment',
+            entityId: assignment.id,
+            summary: `Assigned ${assignment.personId} to ${assignment.orgUnitId}`,
+          });
           return assignment;
         },
         archiveAssignment: (_parent, args: { id: string }, ctx: ComatrixContext) => {
@@ -225,6 +251,11 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
             requireSameOrg(ctx, person.organizationId);
           }
           assignment.status = 'archived';
+          recordAuditEvent(seed, auditActor(ctx), 'assignment_archived', {
+            entityType: 'assignment',
+            entityId: assignment.id,
+            summary: `Archived assignment ${assignment.id}`,
+          });
           return assignment;
         },
         setDefaultScoringRule: (_parent, args: { id: string }, ctx: ComatrixContext) => {
@@ -238,12 +269,17 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
               item.isDefault = item.id === rule.id;
             }
           }
+          recordAuditEvent(seed, auditActor(ctx), 'scoring_rule_default_set', {
+            entityType: 'scoring_rule',
+            entityId: rule.id,
+            summary: `Set default scoring rule to ${rule.name}`,
+          });
           return rule;
         },
         importCompetencies: (
           _parent,
           args: { input: Array<{ category: string; categoryType?: string | null; code: string; name: string; description?: string | null; tags?: string[] | null }> },
-          _ctx: ComatrixContext,
+          ctx: ComatrixContext,
         ) => {
           const report = parseCompetencyImport(
             args.input.map((row) => ({
@@ -256,8 +292,14 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
             })),
           );
           if (report.valid) {
-            applyCompetencyImport(seed, report);
+            const { categoriesAdded, competenciesAdded } = applyCompetencyImport(seed, report);
             report.applied = true;
+            recordAuditEvent(seed, auditActor(ctx), 'competencies_imported', {
+              entityType: 'ontology',
+              entityId: seed.organization.id,
+              summary: `Imported ${competenciesAdded} competencies across ${categoriesAdded} categories`,
+              metadata: { competenciesAdded, categoriesAdded },
+            });
           }
           return {
             applied: report.applied,
@@ -267,6 +309,40 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
             categoriesParsed: report.parsed.categories.length,
             competenciesParsed: report.parsed.competencies.length,
           };
+        },
+        finalizeAssessment: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          const assessment = assessmentById(args.id);
+          if (!assessment) {
+            throw new Error(`Unknown assessment ${args.id}`);
+          }
+          const person = findPerson(assessment.personId);
+          if (person) {
+            requireSameOrg(ctx, person.organizationId);
+          }
+          assessment.status = 'finalized';
+          recordAuditEvent(seed, auditActor(ctx), 'assessment_finalized', {
+            entityType: 'assessment',
+            entityId: assessment.id,
+            summary: `Finalized assessment ${assessment.id}`,
+          });
+          return assessment;
+        },
+        activateMatrix: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          const matrix = matrixById(args.id);
+          if (!matrix) {
+            throw new Error(`Unknown matrix ${args.id}`);
+          }
+          const profile = roleProfileById(matrix.roleProfileId);
+          if (profile) {
+            requireSameOrg(ctx, actorOrgId(ctx));
+          }
+          matrix.status = 'active';
+          recordAuditEvent(seed, auditActor(ctx), 'matrix_activated', {
+            entityType: 'matrix',
+            entityId: matrix.id,
+            summary: `Activated matrix ${matrix.name}`,
+          });
+          return matrix;
         },
       },
       CompetencyCategory: {

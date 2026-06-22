@@ -6,6 +6,7 @@ import {
   assessmentScores,
   assessments,
   assignments,
+  auditEvents,
   calibrationDecisions,
   calibrationSessions,
   competencies,
@@ -42,6 +43,7 @@ async function main() {
 
   await db.execute(sql`
     truncate table
+      audit_events,
       calibration_decisions,
       calibration_sessions,
       scoring_rules,
@@ -157,6 +159,9 @@ async function main() {
   );
   await db.insert(calibrationSessions).values(mvpSeed.calibrationSessions);
   await db.insert(calibrationDecisions).values(mvpSeed.calibrationDecisions);
+  await db.insert(auditEvents).values(
+    mvpSeed.auditEvents.map((event) => ({ ...event, createdAt: date(event.createdAt) })),
+  );
 
   await pool.end();
 }

@@ -119,4 +119,13 @@ query PeopleAssignments {
       isCritical
     }
   }
+  auditEvents(limit: 20) {
+    id
+    action
+    entityType
+    entityId
+    summary
+    actorUserId
+    createdAt
+  }
 }

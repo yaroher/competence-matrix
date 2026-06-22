@@ -660,6 +660,7 @@ export const mvpSeed: MvpSeed = {
       reason: 'Recent mentoring evidence supports the higher level.',
     },
   ],
+  auditEvents: [],
   dashboard: {
     activeCycleName: 'v0.1 Backend Go Senior pilot',
     ontologyDomains: categories.length,

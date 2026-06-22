@@ -41,7 +41,45 @@
       </div>
     </header>
 
-    @if (selectedNav() === 'Analytics') {
+    @if (selectedNav() === 'Audit') {
+      <section class="admin-grid" aria-label="Audit trail">
+        <article class="panel admin-detail-panel" style="grid-column: 1 / -1">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">Audit trail</span>
+              <h2>Recent changes</h2>
+            </div>
+            <z-badge zType="outline" zShape="pill">{{ auditEvents().length }} events</z-badge>
+          </div>
+          @if (auditEvents().length) {
+            <table z-table zType="bordered" zSize="compact" class="calibration-table">
+              <thead z-table-header>
+                <tr z-table-row>
+                  <th z-table-head>Action</th>
+                  <th z-table-head>Entity</th>
+                  <th z-table-head>Summary</th>
+                  <th z-table-head>Actor</th>
+                  <th z-table-head>When</th>
+                </tr>
+              </thead>
+              <tbody z-table-body>
+                @for (event of auditEvents(); track event.id) {
+                  <tr z-table-row>
+                    <td z-table-cell>{{ event.action }}</td>
+                    <td z-table-cell>{{ event.entityType }} · {{ event.entityId }}</td>
+                    <td z-table-cell>{{ event.summary }}</td>
+                    <td z-table-cell>{{ event.actorUserId ?? '—' }}</td>
+                    <td z-table-cell>{{ event.createdAt }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="admin-muted">No audit events yet. Changes made via mutations appear here.</p>
+          }
+        </article>
+      </section>
+    } @else if (selectedNav() === 'Analytics') {
       <section class="admin-grid" aria-label="Team and organization analytics">
         @if (orgGapSummary(); as summary) {
           <article class="panel admin-detail-panel" style="grid-column: 1 / -1">

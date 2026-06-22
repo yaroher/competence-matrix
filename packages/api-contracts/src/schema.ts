@@ -20,6 +20,7 @@ export const schema = /* GraphQL */ `
     organizationGapSummary: OrganizationGapSummary!
     exportMatrixRequirements(matrixRevisionId: ID!): [MatrixRequirementExportRow!]!
     exportGapSummary(assessmentId: ID!): [GapExportRow!]!
+    auditEvents(entityType: String, entityId: ID, limit: Int = 20): [AuditEvent!]!
   }
 
   type Mutation {
@@ -28,6 +29,8 @@ export const schema = /* GraphQL */ `
     archiveAssignment(id: ID!): Assignment!
     setDefaultScoringRule(id: ID!): ScoringRule!
     importCompetencies(input: [CompetencyImportInput!]!): ImportValidationReport!
+    finalizeAssessment(id: ID!): Assessment!
+    activateMatrix(id: ID!): Matrix!
   }
 
   input CreatePersonInput {
@@ -85,6 +88,17 @@ export const schema = /* GraphQL */ `
     errors: [ImportRowError!]!
     categoriesParsed: Int!
     competenciesParsed: Int!
+  }
+
+  type AuditEvent {
+    id: ID!
+    action: String!
+    entityType: String!
+    entityId: ID!
+    summary: String!
+    actorUserId: ID
+    actorPersonId: ID
+    createdAt: String!
   }
 
   type DashboardSummary {

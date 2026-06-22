@@ -2,6 +2,7 @@ import {
   assessmentScores,
   assessments,
   assignments,
+  auditEvents,
   calibrationDecisions,
   calibrationSessions,
   competencies,
@@ -96,6 +97,7 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
       assessmentScoreRows,
       calibrationSessionRows,
       calibrationDecisionRows,
+      auditEventRows,
       developmentPlanRows,
       developmentPlanItemRows,
     ] = await Promise.all([
@@ -124,6 +126,7 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
       db.select().from(assessmentScores),
       db.select().from(calibrationSessions),
       db.select().from(calibrationDecisions),
+      db.select().from(auditEvents),
       db.select().from(developmentPlans),
       db.select().from(developmentPlanItems),
     ]);
@@ -304,6 +307,18 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
         originalLevel: decision.originalLevel,
         calibratedLevel: decision.calibratedLevel,
         reason: decision.reason,
+      })),
+      auditEvents: auditEventRows.map((event) => ({
+        id: event.id,
+        organizationId: event.organizationId,
+        actorUserId: event.actorUserId ?? undefined,
+        actorPersonId: event.actorPersonId ?? undefined,
+        action: event.action as never,
+        entityType: event.entityType,
+        entityId: event.entityId,
+        summary: event.summary,
+        metadata: (event.metadata ?? {}) as Record<string, unknown>,
+        createdAt: isoDate(event.createdAt),
       })),
       dashboard: {
         activeCycleName: `${activeRoleProfile?.name ?? 'v0.1'} pilot`,
