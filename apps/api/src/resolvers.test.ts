@@ -3,10 +3,14 @@ import { createYoga } from 'graphql-yoga';
 import { mvpSeed } from '@comatrix/domain';
 import { createComatrixContext, createExecutableSchema } from './resolvers.js';
 
-let instance: ReturnType<typeof createYoga>;
+function makeYoga() {
+  return createYoga({ schema: createExecutableSchema(structuredClone(mvpSeed)), context: createComatrixContext() });
+}
+
+let instance: ReturnType<typeof makeYoga>;
 
 beforeEach(() => {
-  instance = createYoga({ schema: createExecutableSchema(structuredClone(mvpSeed)), context: createComatrixContext() });
+  instance = makeYoga();
 });
 
 async function run(query: string, headers: Record<string, string> = {}) {
@@ -192,5 +196,43 @@ describe('analytics', () => {
     const summary = json.data.organizationGapSummary;
     expect(summary.coveragePercent).toBeGreaterThan(0);
     expect(summary.byCompetency.length).toBeGreaterThan(0);
+  });
+});
+
+describe('import and export', () => {
+  it('exports matrix requirements and gap summaries as readable rows', async () => {
+    const matrix = await run(
+      '{ exportMatrixRequirements(matrixRevisionId: "matrix-backend-go-senior-r1") { competencyCode competencyName targetLevel criticality } exportGapSummary(assessmentId: "assessment-alexey-backend-go-senior") { competencyCode gap weightedGap } }',
+    );
+
+    expect(matrix.errors).toBeUndefined();
+    expect(matrix.data.exportMatrixRequirements.length).toBeGreaterThan(0);
+    expect(matrix.data.exportGapSummary.length).toBeGreaterThan(0);
+  });
+
+  it('rejects an invalid competency import with actionable row errors and does not apply', async () => {
+    const mutation =
+      'mutation { importCompetencies(input: [{ category: "", code: "", name: "" }]) { applied valid rowCount errors { row field message } categoriesParsed competenciesParsed } }';
+    const result = await run(mutation);
+
+    expect(result.errors).toBeUndefined();
+    const report = result.data.importCompetencies;
+    expect(report.valid).toBe(false);
+    expect(report.applied).toBe(false);
+    expect(report.errors.length).toBeGreaterThan(0);
+    expect(report.errors[0].row).toBe(1);
+  });
+
+  it('validates and applies a valid competency import', async () => {
+    const mutation =
+      'mutation { importCompetencies(input: [{ category: "Cloud", code: "IMP-1", name: "Imported competency" }]) { applied valid rowCount categoriesParsed competenciesParsed errors { message } } }';
+    const result = await run(mutation);
+
+    expect(result.errors).toBeUndefined();
+    const report = result.data.importCompetencies;
+    expect(report.valid).toBe(true);
+    expect(report.applied).toBe(true);
+    expect(report.categoriesParsed).toBe(1);
+    expect(report.competenciesParsed).toBe(1);
   });
 });

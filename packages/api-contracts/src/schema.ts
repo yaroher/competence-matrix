@@ -18,6 +18,8 @@ export const schema = /* GraphQL */ `
     scoringRules: [ScoringRule!]!
     managerDashboard(managerPersonId: ID!): ManagerDashboard
     organizationGapSummary: OrganizationGapSummary!
+    exportMatrixRequirements(matrixRevisionId: ID!): [MatrixRequirementExportRow!]!
+    exportGapSummary(assessmentId: ID!): [GapExportRow!]!
   }
 
   type Mutation {
@@ -25,6 +27,7 @@ export const schema = /* GraphQL */ `
     createAssignment(input: CreateAssignmentInput!): Assignment!
     archiveAssignment(id: ID!): Assignment!
     setDefaultScoringRule(id: ID!): ScoringRule!
+    importCompetencies(input: [CompetencyImportInput!]!): ImportValidationReport!
   }
 
   input CreatePersonInput {
@@ -38,6 +41,50 @@ export const schema = /* GraphQL */ `
     managerPersonId: ID
     roleProfileId: ID!
     effectiveFrom: String!
+  }
+
+  input CompetencyImportInput {
+    category: String!
+    categoryType: String
+    code: String!
+    name: String!
+    description: String
+    tags: [String!]
+  }
+
+  type MatrixRequirementExportRow {
+    competencyCode: String!
+    competencyName: String!
+    targetLevel: Int!
+    required: Boolean!
+    normalizedWeight: Float!
+    criticality: String!
+    neededOnEntry: Boolean!
+  }
+
+  type GapExportRow {
+    competencyCode: String!
+    competencyName: String!
+    targetLevel: Int!
+    currentLevel: Int!
+    gap: Int!
+    weightedGap: Float!
+    criticality: String!
+  }
+
+  type ImportRowError {
+    row: Int!
+    field: String
+    message: String!
+  }
+
+  type ImportValidationReport {
+    applied: Boolean!
+    rowCount: Int!
+    valid: Boolean!
+    errors: [ImportRowError!]!
+    categoriesParsed: Int!
+    competenciesParsed: Int!
   }
 
   type DashboardSummary {

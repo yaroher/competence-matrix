@@ -1,5 +1,5 @@
 import { schema } from '@comatrix/api-contracts';
-import { calculateGaps, currentAssignmentForPerson, directReportsOf, managerTeamCoverage, mvpSeed, organizationGapSummary, type MvpSeed } from '@comatrix/domain';
+import { applyCompetencyImport, calculateGaps, currentAssignmentForPerson, directReportsOf, managerTeamCoverage, mvpSeed, organizationGapSummary, parseCompetencyImport, toGapExportRows, toMatrixRequirementExportRows, type MvpSeed } from '@comatrix/domain';
 import { createSchema } from 'graphql-yoga';
 
 export interface ComatrixContext {
@@ -147,6 +147,30 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           return { managerPersonId: manager.id, reports: managerTeamCoverage(seed, args.managerPersonId) };
         },
         organizationGapSummary: (_parent, _args, ctx: ComatrixContext) => organizationGapSummary(seed),
+        exportMatrixRequirements: (_parent, args: { matrixRevisionId: string }, ctx: ComatrixContext) => {
+          const revision = seed.matrixRevisions.find((item) => item.id === args.matrixRevisionId);
+          if (!revision) {
+            return [];
+          }
+          const matrix = seed.matrices.find((item) => item.id === revision.matrixId);
+          const profile = matrix ? roleProfileById(matrix.roleProfileId) : null;
+          if (profile) {
+            requireSameOrg(ctx, actorOrgId(ctx));
+          }
+          void profile;
+          return toMatrixRequirementExportRows(seed, args.matrixRevisionId);
+        },
+        exportGapSummary: (_parent, args: { assessmentId: string }, ctx: ComatrixContext) => {
+          const assessment = assessmentById(args.assessmentId);
+          if (!assessment) {
+            return [];
+          }
+          const person = findPerson(assessment.personId);
+          if (person) {
+            requireSameOrg(ctx, person.organizationId);
+          }
+          return toGapExportRows(seed, args.assessmentId);
+        },
       },
       Mutation: {
         createPerson: (_parent, args: { input: { fullName: string; email: string } }, ctx: ComatrixContext) => {
@@ -215,6 +239,34 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
             }
           }
           return rule;
+        },
+        importCompetencies: (
+          _parent,
+          args: { input: Array<{ category: string; categoryType?: string | null; code: string; name: string; description?: string | null; tags?: string[] | null }> },
+          _ctx: ComatrixContext,
+        ) => {
+          const report = parseCompetencyImport(
+            args.input.map((row) => ({
+              category: row.category,
+              categoryType: row.categoryType ?? undefined,
+              code: row.code,
+              name: row.name,
+              description: row.description ?? undefined,
+              tags: row.tags ?? undefined,
+            })),
+          );
+          if (report.valid) {
+            applyCompetencyImport(seed, report);
+            report.applied = true;
+          }
+          return {
+            applied: report.applied,
+            rowCount: report.rowCount,
+            valid: report.valid,
+            errors: report.errors,
+            categoriesParsed: report.parsed.categories.length,
+            competenciesParsed: report.parsed.competencies.length,
+          };
         },
       },
       CompetencyCategory: {

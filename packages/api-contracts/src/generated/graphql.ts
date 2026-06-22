@@ -116,6 +116,15 @@ export type CompetencyGapSummary = {
   readonly totalGap: Scalars['Int']['output'];
 };
 
+export type CompetencyImportInput = {
+  readonly category: Scalars['String']['input'];
+  readonly categoryType: InputMaybe<Scalars['String']['input']>;
+  readonly code: Scalars['String']['input'];
+  readonly description: InputMaybe<Scalars['String']['input']>;
+  readonly name: Scalars['String']['input'];
+  readonly tags: InputMaybe<ReadonlyArray<Scalars['String']['input']>>;
+};
+
 export type CompetencyRelation = {
   readonly __typename?: 'CompetencyRelation';
   readonly id: Scalars['ID']['output'];
@@ -177,11 +186,39 @@ export type Gap = {
   readonly weightedGap: Scalars['Float']['output'];
 };
 
+export type GapExportRow = {
+  readonly __typename?: 'GapExportRow';
+  readonly competencyCode: Scalars['String']['output'];
+  readonly competencyName: Scalars['String']['output'];
+  readonly criticality: Scalars['String']['output'];
+  readonly currentLevel: Scalars['Int']['output'];
+  readonly gap: Scalars['Int']['output'];
+  readonly targetLevel: Scalars['Int']['output'];
+  readonly weightedGap: Scalars['Float']['output'];
+};
+
 export type Grade = {
   readonly __typename?: 'Grade';
   readonly id: Scalars['ID']['output'];
   readonly name: Scalars['String']['output'];
   readonly rank: Scalars['Int']['output'];
+};
+
+export type ImportRowError = {
+  readonly __typename?: 'ImportRowError';
+  readonly field: Maybe<Scalars['String']['output']>;
+  readonly message: Scalars['String']['output'];
+  readonly row: Scalars['Int']['output'];
+};
+
+export type ImportValidationReport = {
+  readonly __typename?: 'ImportValidationReport';
+  readonly applied: Scalars['Boolean']['output'];
+  readonly categoriesParsed: Scalars['Int']['output'];
+  readonly competenciesParsed: Scalars['Int']['output'];
+  readonly errors: ReadonlyArray<ImportRowError>;
+  readonly rowCount: Scalars['Int']['output'];
+  readonly valid: Scalars['Boolean']['output'];
 };
 
 export type LevelDefinition = {
@@ -246,6 +283,17 @@ export type MatrixRequirement = {
   readonly weightSource: Scalars['String']['output'];
 };
 
+export type MatrixRequirementExportRow = {
+  readonly __typename?: 'MatrixRequirementExportRow';
+  readonly competencyCode: Scalars['String']['output'];
+  readonly competencyName: Scalars['String']['output'];
+  readonly criticality: Scalars['String']['output'];
+  readonly neededOnEntry: Scalars['Boolean']['output'];
+  readonly normalizedWeight: Scalars['Float']['output'];
+  readonly required: Scalars['Boolean']['output'];
+  readonly targetLevel: Scalars['Int']['output'];
+};
+
 export type MatrixRevision = {
   readonly __typename?: 'MatrixRevision';
   readonly activatedAt: Scalars['String']['output'];
@@ -259,6 +307,7 @@ export type Mutation = {
   readonly archiveAssignment: Assignment;
   readonly createAssignment: Assignment;
   readonly createPerson: Person;
+  readonly importCompetencies: ImportValidationReport;
   readonly setDefaultScoringRule: ScoringRule;
 };
 
@@ -275,6 +324,11 @@ export type MutationCreateAssignmentArgs = {
 
 export type MutationCreatePersonArgs = {
   input: CreatePersonInput;
+};
+
+
+export type MutationImportCompetenciesArgs = {
+  input: ReadonlyArray<CompetencyImportInput>;
 };
 
 
@@ -333,6 +387,8 @@ export type Query = {
   readonly dashboard: DashboardSummary;
   readonly developmentPlan: Maybe<DevelopmentPlan>;
   readonly directReports: ReadonlyArray<Assignment>;
+  readonly exportGapSummary: ReadonlyArray<GapExportRow>;
+  readonly exportMatrixRequirements: ReadonlyArray<MatrixRequirementExportRow>;
   readonly levelScales: ReadonlyArray<LevelScale>;
   readonly managerDashboard: Maybe<ManagerDashboard>;
   readonly matrix: Maybe<Matrix>;
@@ -364,6 +420,16 @@ export type QueryDevelopmentPlanArgs = {
 
 export type QueryDirectReportsArgs = {
   managerPersonId: Scalars['ID']['input'];
+};
+
+
+export type QueryExportGapSummaryArgs = {
+  assessmentId: Scalars['ID']['input'];
+};
+
+
+export type QueryExportMatrixRequirementsArgs = {
+  matrixRevisionId: Scalars['ID']['input'];
 };
 
 
