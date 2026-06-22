@@ -16,6 +16,7 @@
     "e2e": "yarn workspace @comatrix/web e2e",
     "lint": "turbo run lint",
     "codegen": "turbo run codegen",
+    "codegen:check": "yarn codegen && git diff --exit-code -- packages/api-contracts/src/generated/graphql.ts",
     "db:generate": "yarn workspace @comatrix/db db:generate",
     "db:migrate": "yarn workspace @comatrix/db db:migrate",
     "db:push": "yarn workspace @comatrix/db db:push",

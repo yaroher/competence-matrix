@@ -2,7 +2,7 @@ import http from 'node:http';
 import { createYoga } from 'graphql-yoga';
 import { config } from './config.js';
 import { loadMvpDataSource } from './data.js';
-import { createExecutableSchema, createComatrixContext } from './resolvers.js';
+import { createComatrixContext, createExecutableSchema } from './resolvers.js';
 
 const mvpData = await loadMvpDataSource(config.COMATRIX_DATA_SOURCE, config.COMATRIX_DATABASE_URL);
 const yoga = createYoga({
@@ -14,6 +14,15 @@ const yoga = createYoga({
   },
   context: createComatrixContext(),
 });
+
+function log(level: 'info' | 'warn' | 'error', message: string, fields: Record<string, unknown> = {}) {
+  const line = JSON.stringify({ ts: new Date().toISOString(), level, msg: message, ...fields });
+  if (level === 'error') {
+    process.stderr.write(line + '\n');
+  } else {
+    process.stdout.write(line + '\n');
+  }
+}
 
 const server = http.createServer((request, response) => {
   if (request.method === 'GET' && request.url === '/healthz') {
@@ -28,10 +37,31 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'GET' && request.url === '/readyz') {
+    const ready = mvpData.organization?.id !== undefined;
+    response.writeHead(ready ? 200 : 503, { 'content-type': 'application/json' });
+    response.end(
+      JSON.stringify({
+        ready,
+        service: 'comatrix-api',
+        dataSource: config.COMATRIX_DATA_SOURCE,
+        organizationId: mvpData.organization?.id ?? null,
+      }),
+    );
+    return;
+  }
+
+  if (request.url === '/graphql') {
+    const started = Date.now();
+    log('info', 'graphql.request', { method: request.method });
+    response.on('finish', () => {
+      log('info', 'graphql.response', { status: response.statusCode, durationMs: Date.now() - started });
+    });
+  }
+
   yoga(request, response);
 });
 
 server.listen(config.COMATRIX_API_PORT, () => {
-  console.log(`COMatrix API listening on http://localhost:${config.COMATRIX_API_PORT}/graphql`);
-  console.log(`COMatrix API data source: ${config.COMATRIX_DATA_SOURCE}`);
+  log('info', 'api.listening', { port: config.COMATRIX_API_PORT, dataSource: config.COMATRIX_DATA_SOURCE });
 });
