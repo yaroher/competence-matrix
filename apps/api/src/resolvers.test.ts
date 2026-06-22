@@ -55,6 +55,15 @@ describe('people and assignment operations', () => {
     ]);
   });
 
+  it('lists people scoped to the actor organization', async () => {
+    const json = await run('{ people { id fullName currentAssignment { roleProfile { name } } } }');
+
+    expect(json.errors).toBeUndefined();
+    expect(json.data.people.length).toBeGreaterThanOrEqual(5);
+    const byId = new Map(json.data.people.map((p: { id: string }) => [p.id, p]));
+    expect(byId.get('person-alexey').currentAssignment.roleProfile.name).toBe('Backend Go Engineer / Senior');
+  });
+
   it('resolves a person by id within the same org', async () => {
     const json = await run('{ person(id: "person-alexey") { id fullName email } }');
 

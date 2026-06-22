@@ -1,7 +1,7 @@
 import { DecimalPipe, NgClass } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ApiService, GapVm, MatrixRequirementVm, ScoreVm } from './api.service';
+import { ApiService, GapVm, MatrixRequirementVm, PeopleAssignmentsVm, ScoreVm } from './api.service';
 import { ZardBadgeComponent } from './shared/components/badge';
 import { ZardButtonComponent } from './shared/components/button';
 import { ZardCardComponent } from './shared/components/card';
@@ -14,6 +14,11 @@ import {
   ZardTableHeaderComponent,
   ZardTableRowComponent,
 } from './shared/components/table';
+
+type OrgUnit = PeopleAssignmentsVm['orgUnits'][number];
+interface OrgUnitNode extends OrgUnit {
+  children: OrgUnitNode[];
+}
 
 @Component({
   selector: 'cmx-root',
@@ -43,6 +48,33 @@ export class AppComponent {
 
   readonly actorAssignment = computed(() => this.people()?.currentActor?.person?.currentAssignment ?? null);
   readonly orgUnitCount = computed(() => this.people()?.orgUnits?.length ?? 0);
+
+  readonly adminPeople = computed(() => this.people()?.people ?? []);
+  readonly selectedAdminPersonId = signal<string | null>(null);
+  readonly selectedAdminPerson = computed(() => {
+    const id = this.selectedAdminPersonId();
+    if (!id) {
+      return this.adminPeople()[0] ?? null;
+    }
+    return this.adminPeople().find((person) => person.id === id) ?? null;
+  });
+
+  readonly orgUnitTree = computed(() => {
+    const units = this.people()?.orgUnits ?? [];
+    const byId = new Map(units.map((unit) => [unit.id, { ...unit, children: [] as OrgUnitNode[] }]));
+    const roots: OrgUnitNode[] = [];
+    for (const node of byId.values()) {
+      const parent = node.parentId ? byId.get(node.parentId) : undefined;
+      if (parent) {
+        parent.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+    return roots;
+  });
+
+  readonly adminError = computed(() => (this.adminPeople().length === 0 && this.data() ? 'No people found' : null));
 
   readonly topGaps = computed(() => {
     return [...(this.data()?.assessment.gaps ?? [])].sort((a, b) => b.weightedGap - a.weightedGap).slice(0, 6);
@@ -87,5 +119,13 @@ export class AppComponent {
 
   gapTrack(_index: number, item: GapVm) {
     return item.competency.id;
+  }
+
+  selectAdminPerson(id: string) {
+    this.selectedAdminPersonId.set(id);
+  }
+
+  personTrack(_index: number, item: { id: string }) {
+    return item.id;
   }
 }

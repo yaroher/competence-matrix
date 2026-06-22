@@ -93,6 +93,10 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           const orgId = actorOrgId(ctx);
           return seed.orgUnits.filter((unit) => unit.organizationId === orgId);
         },
+        people: (_parent, _args, ctx: ComatrixContext) => {
+          const orgId = actorOrgId(ctx);
+          return seed.people.filter((person) => person.organizationId === orgId);
+        },
         person: (_parent, args: { id: string }, ctx: ComatrixContext) => {
           const person = findPerson(args.id);
           if (!person) {

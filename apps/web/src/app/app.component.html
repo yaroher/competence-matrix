@@ -41,7 +41,118 @@
       </div>
     </header>
 
-    @if (data(); as vm) {
+    @if (selectedNav() === 'Admin') {
+      <section class="admin-grid" aria-label="People and organization admin">
+        @if (people(); as pa) {
+          @if (adminError()) {
+            <article class="panel admin-empty">
+              <strong>{{ adminError() }}</strong>
+              <span>No people data is available for the current actor.</span>
+            </article>
+          } @else {
+            <article class="panel admin-tree-panel">
+              <div class="panel-header">
+                <div>
+                  <span class="eyebrow">Organization</span>
+                  <h2>{{ pa.organization.name }}</h2>
+                </div>
+                <z-badge zType="outline" zShape="pill">{{ pa.orgUnits.length }} units</z-badge>
+              </div>
+
+              @if (orgUnitTree().length) {
+                <ul class="org-tree">
+                  @for (root of orgUnitTree(); track root.id) {
+                    <li>
+                      <span class="org-node">
+                        <z-badge zType="secondary" zShape="pill">{{ root.type }}</z-badge>
+                        <strong>{{ root.name }}</strong>
+                      </span>
+                      @if (root.children.length) {
+                        <ul>
+                          @for (child of root.children; track child.id) {
+                            <li>
+                              <span class="org-node">
+                                <z-badge zType="outline" zShape="pill">{{ child.type }}</z-badge>
+                                <span>{{ child.name }}</span>
+                              </span>
+                            </li>
+                          }
+                        </ul>
+                      }
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="admin-muted">Org units are loading.</p>
+              }
+            </article>
+
+            <article class="panel admin-people-panel">
+              <div class="panel-header">
+                <div>
+                  <span class="eyebrow">People</span>
+                  <h2>{{ pa.people.length }} records</h2>
+                </div>
+              </div>
+
+              @if (pa.people.length) {
+                <ul class="people-list">
+                  @for (person of pa.people; track personTrack($index, person)) {
+                    <li>
+                      <button
+                        z-button
+                        zType="ghost"
+                        zFull
+                        type="button"
+                        class="people-row"
+                        [class.people-active]="selectedAdminPerson()?.id === person.id"
+                        (click)="selectAdminPerson(person.id)"
+                      >
+                        <strong>{{ person.fullName }}</strong>
+                        <span>{{ person.email }}</span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="admin-muted">No people in this organization.</p>
+              }
+            </article>
+
+            <article class="panel admin-detail-panel">
+              <div class="panel-header">
+                <div>
+                  <span class="eyebrow">Assignment</span>
+                  <h2>{{ selectedAdminPerson()?.fullName ?? 'Select a person' }}</h2>
+                </div>
+              </div>
+
+              @if (selectedAdminPerson(); as selected) {
+                <dl class="assignment-grid">
+                  <dt>Email</dt>
+                  <dd>{{ selected.email }}</dd>
+                  <dt>Role profile</dt>
+                  <dd>{{ selected.currentAssignment?.roleProfile?.name ?? '—' }}</dd>
+                  <dt>Org unit</dt>
+                  <dd>{{ selected.currentAssignment?.orgUnit?.name ?? '—' }}</dd>
+                  <dt>Manager</dt>
+                  <dd>{{ selected.currentAssignment?.manager?.fullName ?? '—' }}</dd>
+                  <dt>Status</dt>
+                  <dd>{{ selected.currentAssignment?.status ?? 'no active assignment' }}</dd>
+                </dl>
+              } @else {
+                <p class="admin-muted">Select a person to inspect their current assignment.</p>
+              }
+            </article>
+          }
+        } @else {
+          <article class="panel admin-empty">
+            <strong>Loading people and organization</strong>
+            <span>Waiting for GraphQL API on /graphql</span>
+          </article>
+        }
+      </section>
+    } @else if (data(); as vm) {
       <section class="metrics" aria-label="Dashboard metrics">
         <article>
           <span>Active cycle</span>

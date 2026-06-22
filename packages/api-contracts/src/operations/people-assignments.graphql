@@ -37,4 +37,27 @@ query PeopleAssignments {
     name
     status
   }
+  people {
+    id
+    fullName
+    email
+    currentAssignment {
+      id
+      status
+      effectiveFrom
+      orgUnit {
+        id
+        name
+        type
+      }
+      manager {
+        id
+        fullName
+      }
+      roleProfile {
+        id
+        name
+      }
+    }
+  }
 }

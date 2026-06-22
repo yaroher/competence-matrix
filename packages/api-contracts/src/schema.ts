@@ -5,6 +5,7 @@ export const schema = /* GraphQL */ `
     ontology: Ontology!
     currentActor: Actor!
     orgUnits: [OrgUnit!]!
+    people: [Person!]!
     person(id: ID!): Person
     currentAssignment(personId: ID!): Assignment
     directReports(managerPersonId: ID!): [Assignment!]!
