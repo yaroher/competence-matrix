@@ -1,4 +1,5 @@
 export * from './assessment.js';
+export * from './assignments.js';
 export * from './org-tree.js';
 export * from './seed.js';
 export * from './types.js';

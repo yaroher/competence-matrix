@@ -29,6 +29,7 @@ export const orgUnitType = pgEnum('org_unit_type', ['company', 'department', 'te
 export const orgUnitStatus = pgEnum('org_unit_status', ['active', 'archived']);
 export const systemRole = pgEnum('system_role', ['employee', 'manager', 'expert', 'hr', 'methodology_admin']);
 export const userStatus = pgEnum('user_status', ['active', 'disabled']);
+export const assignmentStatus = pgEnum('assignment_status', ['active', 'archived']);
 
 export const organizations = pgTable('organizations', {
   id: text('id').primaryKey(),
@@ -126,11 +127,13 @@ export const assignments = pgTable('assignments', {
   roleProfileId: text('role_profile_id').notNull().references(() => roleProfiles.id),
   effectiveFrom: timestamp('effective_from', { withTimezone: true }).notNull(),
   effectiveTo: timestamp('effective_to', { withTimezone: true }),
+  status: assignmentStatus('status').notNull().default('active'),
 }, (table) => [
   index('assignments_person_idx').on(table.personId),
   index('assignments_org_unit_idx').on(table.orgUnitId),
   index('assignments_manager_idx').on(table.managerPersonId),
   index('assignments_role_profile_idx').on(table.roleProfileId),
+  index('assignments_status_idx').on(table.status),
 ]);
 
 export const roleTasks = pgTable('role_tasks', {

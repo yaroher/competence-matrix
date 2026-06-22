@@ -50,6 +50,18 @@ export interface Assignment {
   roleProfileId: Id;
   effectiveFrom: string;
   effectiveTo?: string;
+  status: 'active' | 'archived';
+}
+
+export interface AssignmentSnapshot {
+  assignmentId: Id;
+  personId: Id;
+  orgUnitId: Id;
+  managerPersonId?: Id;
+  roleProfileId: Id;
+  effectiveFrom: string;
+  effectiveTo?: string;
+  status: 'active' | 'archived';
 }
 
 export interface CompetencyCategory {

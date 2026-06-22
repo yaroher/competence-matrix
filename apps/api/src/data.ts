@@ -224,6 +224,7 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
         managerPersonId: assignment.managerPersonId ?? undefined,
         effectiveFrom: dateOnly(assignment.effectiveFrom),
         effectiveTo: assignment.effectiveTo ? dateOnly(assignment.effectiveTo) : undefined,
+        status: assignment.status as 'active' | 'archived',
       })),
       categories,
       competencies: competenciesData,
