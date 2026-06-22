@@ -39,6 +39,10 @@ export class AppComponent {
   private readonly api = inject(ApiService);
   readonly selectedNav = signal('Dashboard');
   readonly data = toSignal(this.api.loadMvpData());
+  readonly people = toSignal(this.api.loadPeopleAssignments());
+
+  readonly actorAssignment = computed(() => this.people()?.currentActor?.person?.currentAssignment ?? null);
+  readonly orgUnitCount = computed(() => this.people()?.orgUnits?.length ?? 0);
 
   readonly topGaps = computed(() => {
     return [...(this.data()?.assessment.gaps ?? [])].sort((a, b) => b.weightedGap - a.weightedGap).slice(0, 6);

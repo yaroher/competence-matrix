@@ -41,6 +41,18 @@ export type AssessmentScore = {
   readonly verificationStatus: Scalars['String']['output'];
 };
 
+export type Assignment = {
+  readonly __typename?: 'Assignment';
+  readonly effectiveFrom: Scalars['String']['output'];
+  readonly effectiveTo: Maybe<Scalars['String']['output']>;
+  readonly id: Scalars['ID']['output'];
+  readonly manager: Maybe<Person>;
+  readonly orgUnit: OrgUnit;
+  readonly person: Person;
+  readonly roleProfile: RoleProfile;
+  readonly status: Scalars['String']['output'];
+};
+
 export type BehavioralIndicator = {
   readonly __typename?: 'BehavioralIndicator';
   readonly description: Scalars['String']['output'];
@@ -82,6 +94,19 @@ export type CompetencyRelation = {
   readonly sourceCompetencyId: Scalars['ID']['output'];
   readonly strength: Scalars['Float']['output'];
   readonly targetCompetencyId: Scalars['ID']['output'];
+};
+
+export type CreateAssignmentInput = {
+  readonly effectiveFrom: Scalars['String']['input'];
+  readonly managerPersonId: InputMaybe<Scalars['ID']['input']>;
+  readonly orgUnitId: Scalars['ID']['input'];
+  readonly personId: Scalars['ID']['input'];
+  readonly roleProfileId: Scalars['ID']['input'];
+};
+
+export type CreatePersonInput = {
+  readonly email: Scalars['String']['input'];
+  readonly fullName: Scalars['String']['input'];
 };
 
 export type DashboardSummary = {
@@ -166,12 +191,43 @@ export type MatrixRevision = {
   readonly version: Scalars['Int']['output'];
 };
 
+export type Mutation = {
+  readonly __typename?: 'Mutation';
+  readonly archiveAssignment: Assignment;
+  readonly createAssignment: Assignment;
+  readonly createPerson: Person;
+};
+
+
+export type MutationArchiveAssignmentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationCreateAssignmentArgs = {
+  input: CreateAssignmentInput;
+};
+
+
+export type MutationCreatePersonArgs = {
+  input: CreatePersonInput;
+};
+
 export type Ontology = {
   readonly __typename?: 'Ontology';
   readonly categories: ReadonlyArray<CompetencyCategory>;
   readonly competencies: ReadonlyArray<Competency>;
   readonly levels: ReadonlyArray<LevelDefinition>;
   readonly relations: ReadonlyArray<CompetencyRelation>;
+};
+
+export type OrgUnit = {
+  readonly __typename?: 'OrgUnit';
+  readonly id: Scalars['ID']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly parentId: Maybe<Scalars['ID']['output']>;
+  readonly status: Scalars['String']['output'];
+  readonly type: Scalars['String']['output'];
 };
 
 export type Organization = {
@@ -183,6 +239,7 @@ export type Organization = {
 
 export type Person = {
   readonly __typename?: 'Person';
+  readonly currentAssignment: Maybe<Assignment>;
   readonly email: Scalars['String']['output'];
   readonly fullName: Scalars['String']['output'];
   readonly id: Scalars['ID']['output'];
@@ -193,11 +250,15 @@ export type Query = {
   readonly __typename?: 'Query';
   readonly assessment: Maybe<Assessment>;
   readonly currentActor: Actor;
+  readonly currentAssignment: Maybe<Assignment>;
   readonly dashboard: DashboardSummary;
   readonly developmentPlan: Maybe<DevelopmentPlan>;
+  readonly directReports: ReadonlyArray<Assignment>;
   readonly matrix: Maybe<Matrix>;
   readonly ontology: Ontology;
+  readonly orgUnits: ReadonlyArray<OrgUnit>;
   readonly organization: Organization;
+  readonly person: Maybe<Person>;
   readonly roleProfile: Maybe<RoleProfile>;
 };
 
@@ -207,12 +268,27 @@ export type QueryAssessmentArgs = {
 };
 
 
+export type QueryCurrentAssignmentArgs = {
+  personId: Scalars['ID']['input'];
+};
+
+
 export type QueryDevelopmentPlanArgs = {
   assessmentId: Scalars['ID']['input'];
 };
 
 
+export type QueryDirectReportsArgs = {
+  managerPersonId: Scalars['ID']['input'];
+};
+
+
 export type QueryMatrixArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryPersonArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -275,5 +351,11 @@ export type MvpSliceQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MvpSliceQuery = { readonly dashboard: { readonly activeCycleName: string, readonly ontologyDomains: number, readonly competencies: number, readonly matrixRequirements: number, readonly assessmentCoveragePercent: number, readonly criticalGaps: number }, readonly organization: { readonly name: string }, readonly ontology: { readonly categories: ReadonlyArray<{ readonly id: string, readonly name: string, readonly description: string, readonly categoryType: string, readonly sourceKind: string, readonly competencies: ReadonlyArray<{ readonly id: string, readonly code: string, readonly name: string, readonly description: string, readonly tags: ReadonlyArray<string>, readonly behavioralIndicators: ReadonlyArray<{ readonly level: number, readonly description: string }> }> }> }, readonly roleProfile: { readonly name: string, readonly description: string, readonly role: { readonly name: string, readonly family: { readonly name: string } }, readonly grade: { readonly name: string }, readonly tasks: ReadonlyArray<{ readonly id: string, readonly name: string, readonly expectedOutcome: string, readonly criticality: string }> } | null, readonly matrix: { readonly name: string, readonly status: string, readonly activeRevision: { readonly version: number, readonly requirements: ReadonlyArray<{ readonly id: string, readonly targetLevel: number, readonly normalizedWeight: number, readonly criticality: string, readonly neededOnEntry: boolean, readonly competency: { readonly id: string, readonly code: string, readonly name: string, readonly description: string, readonly tags: ReadonlyArray<string>, readonly behavioralIndicators: ReadonlyArray<{ readonly level: number, readonly description: string }> } }> } } | null, readonly assessment: { readonly id: string, readonly status: string, readonly person: { readonly fullName: string, readonly email: string }, readonly scores: ReadonlyArray<{ readonly id: string, readonly source: string, readonly level: number, readonly confidence: number, readonly verificationStatus: string, readonly comment: string, readonly competency: { readonly id: string, readonly code: string, readonly name: string, readonly description: string, readonly tags: ReadonlyArray<string>, readonly behavioralIndicators: ReadonlyArray<{ readonly level: number, readonly description: string }> } }>, readonly gaps: ReadonlyArray<{ readonly targetLevel: number, readonly currentLevel: number, readonly gap: number, readonly weightedGap: number, readonly criticality: string, readonly competency: { readonly id: string, readonly code: string, readonly name: string, readonly description: string, readonly tags: ReadonlyArray<string>, readonly behavioralIndicators: ReadonlyArray<{ readonly level: number, readonly description: string }> } }> } | null, readonly developmentPlan: { readonly items: ReadonlyArray<{ readonly id: string, readonly title: string, readonly gap: number, readonly dueDate: string, readonly status: string, readonly competency: { readonly id: string, readonly code: string, readonly name: string, readonly description: string, readonly tags: ReadonlyArray<string>, readonly behavioralIndicators: ReadonlyArray<{ readonly level: number, readonly description: string }> } }> } | null };
 
+export type PeopleAssignmentsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PeopleAssignmentsQuery = { readonly currentActor: { readonly user: { readonly id: string, readonly email: string, readonly role: string }, readonly person: { readonly id: string, readonly fullName: string, readonly email: string, readonly currentAssignment: { readonly id: string, readonly status: string, readonly effectiveFrom: string, readonly effectiveTo: string | null, readonly orgUnit: { readonly id: string, readonly name: string, readonly type: string }, readonly manager: { readonly id: string, readonly fullName: string } | null, readonly roleProfile: { readonly id: string, readonly name: string } } | null } | null }, readonly orgUnits: ReadonlyArray<{ readonly id: string, readonly parentId: string | null, readonly type: string, readonly name: string, readonly status: string }> };
+
 
 export const MvpSliceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"MvpSlice"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dashboard"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activeCycleName"}},{"kind":"Field","name":{"kind":"Name","value":"ontologyDomains"}},{"kind":"Field","name":{"kind":"Name","value":"competencies"}},{"kind":"Field","name":{"kind":"Name","value":"matrixRequirements"}},{"kind":"Field","name":{"kind":"Name","value":"assessmentCoveragePercent"}},{"kind":"Field","name":{"kind":"Name","value":"criticalGaps"}}]}},{"kind":"Field","name":{"kind":"Name","value":"organization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"ontology"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"categories"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"categoryType"}},{"kind":"Field","name":{"kind":"Name","value":"sourceKind"}},{"kind":"Field","name":{"kind":"Name","value":"competencies"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"roleProfile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"StringValue","value":"profile-backend-go-senior","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"role"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"family"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"grade"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"tasks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"expectedOutcome"}},{"kind":"Field","name":{"kind":"Name","value":"criticality"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"matrix"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"StringValue","value":"matrix-backend-go-senior","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"activeRevision"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"requirements"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"targetLevel"}},{"kind":"Field","name":{"kind":"Name","value":"normalizedWeight"}},{"kind":"Field","name":{"kind":"Name","value":"criticality"}},{"kind":"Field","name":{"kind":"Name","value":"neededOnEntry"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"assessment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"StringValue","value":"assessment-alexey-backend-go-senior","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"person"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"source"}},{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"confidence"}},{"kind":"Field","name":{"kind":"Name","value":"verificationStatus"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"gaps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"targetLevel"}},{"kind":"Field","name":{"kind":"Name","value":"currentLevel"}},{"kind":"Field","name":{"kind":"Name","value":"gap"}},{"kind":"Field","name":{"kind":"Name","value":"weightedGap"}},{"kind":"Field","name":{"kind":"Name","value":"criticality"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"developmentPlan"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assessmentId"},"value":{"kind":"StringValue","value":"assessment-alexey-backend-go-senior","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"gap"}},{"kind":"Field","name":{"kind":"Name","value":"dueDate"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<MvpSliceQuery, MvpSliceQueryVariables>;
+export const PeopleAssignmentsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PeopleAssignments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentActor"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"role"}}]}},{"kind":"Field","name":{"kind":"Name","value":"person"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"currentAssignment"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveFrom"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveTo"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"manager"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}}]}},{"kind":"Field","name":{"kind":"Name","value":"roleProfile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgUnits"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<PeopleAssignmentsQuery, PeopleAssignmentsQueryVariables>;

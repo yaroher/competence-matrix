@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { MvpSliceDocument, type MvpSliceQuery } from '@comatrix/api-contracts';
+import { MvpSliceDocument, PeopleAssignmentsDocument, type MvpSliceQuery, type PeopleAssignmentsQuery } from '@comatrix/api-contracts';
 import { print } from 'graphql';
 import { map, retry, timer } from 'rxjs';
 
@@ -15,12 +15,15 @@ export type MatrixRequirementVm = MvpDataVm['matrix']['activeRevision']['require
 export type ScoreVm = MvpDataVm['assessment']['scores'][number];
 export type GapVm = MvpDataVm['assessment']['gaps'][number];
 
+export type PeopleAssignmentsVm = PeopleAssignmentsQuery;
+
 interface GraphQlResponse<T> {
   data: T;
   errors?: { message: string }[];
 }
 
 const MVP_QUERY = print(MvpSliceDocument);
+const PEOPLE_ASSIGNMENTS_QUERY = print(PeopleAssignmentsDocument);
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -41,5 +44,17 @@ export class ApiService {
           return response.data as MvpDataVm;
         }),
       );
+  }
+
+  loadPeopleAssignments() {
+    return this.http.post<GraphQlResponse<PeopleAssignmentsQuery>>('/graphql', { query: PEOPLE_ASSIGNMENTS_QUERY }).pipe(
+      retry({ count: 5, delay: (_error, retryCount) => timer(retryCount * 250) }),
+      map((response) => {
+        if (response.errors?.length) {
+          throw new Error(response.errors.map((error) => error.message).join('\n'));
+        }
+        return response.data;
+      }),
+    );
   }
 }

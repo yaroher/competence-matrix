@@ -4,10 +4,33 @@ export const schema = /* GraphQL */ `
     organization: Organization!
     ontology: Ontology!
     currentActor: Actor!
+    orgUnits: [OrgUnit!]!
+    person(id: ID!): Person
+    currentAssignment(personId: ID!): Assignment
+    directReports(managerPersonId: ID!): [Assignment!]!
     roleProfile(id: ID!): RoleProfile
     matrix(id: ID!): Matrix
     assessment(id: ID!): Assessment
     developmentPlan(assessmentId: ID!): DevelopmentPlan
+  }
+
+  type Mutation {
+    createPerson(input: CreatePersonInput!): Person!
+    createAssignment(input: CreateAssignmentInput!): Assignment!
+    archiveAssignment(id: ID!): Assignment!
+  }
+
+  input CreatePersonInput {
+    fullName: String!
+    email: String!
+  }
+
+  input CreateAssignmentInput {
+    personId: ID!
+    orgUnitId: ID!
+    managerPersonId: ID
+    roleProfileId: ID!
+    effectiveFrom: String!
   }
 
   type DashboardSummary {
@@ -170,6 +193,26 @@ export const schema = /* GraphQL */ `
     id: ID!
     fullName: String!
     email: String!
+    status: String!
+    currentAssignment: Assignment
+  }
+
+  type OrgUnit {
+    id: ID!
+    parentId: ID
+    type: String!
+    name: String!
+    status: String!
+  }
+
+  type Assignment {
+    id: ID!
+    person: Person!
+    orgUnit: OrgUnit!
+    manager: Person
+    roleProfile: RoleProfile!
+    effectiveFrom: String!
+    effectiveTo: String
     status: String!
   }
 

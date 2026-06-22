@@ -1,5 +1,5 @@
 import { schema } from '@comatrix/api-contracts';
-import { calculateGaps, mvpSeed, type MvpSeed } from '@comatrix/domain';
+import { calculateGaps, currentAssignmentForPerson, directReportsOf, mvpSeed, type MvpSeed } from '@comatrix/domain';
 import { createSchema } from 'graphql-yoga';
 
 export interface ComatrixContext {
@@ -17,6 +17,13 @@ export function createComatrixContext(initial?: Partial<ComatrixContext>) {
   });
 }
 
+class ForbiddenError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ForbiddenError';
+  }
+}
+
 export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
   function competencyById(id: string) {
     const competency = seed.competencies.find((item) => item.id === id);
@@ -32,6 +39,10 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
       throw new Error(`Unknown person ${id}`);
     }
     return person;
+  }
+
+  function findPerson(id: string) {
+    return seed.people.find((item) => item.id === id) ?? null;
   }
 
   function userById(id: string) {
@@ -54,6 +65,17 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
     return seed.assessments.find((item) => item.id === id) ?? null;
   }
 
+  function actorOrgId(ctx: ComatrixContext): string {
+    const user = userById(ctx.currentUserId ?? DEFAULT_DEV_USER_ID);
+    return user.organizationId;
+  }
+
+  function requireSameOrg(ctx: ComatrixContext, recordOrgId: string) {
+    if (actorOrgId(ctx) !== recordOrgId) {
+      throw new ForbiddenError('Cross-organization access is not allowed');
+    }
+  }
+
   return createSchema({
     typeDefs: schema,
     resolvers: {
@@ -67,11 +89,95 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           const person = user.personId ? (seed.people.find((item) => item.id === user.personId) ?? null) : null;
           return { user, person };
         },
+        orgUnits: (_parent, _args, ctx: ComatrixContext) => {
+          const orgId = actorOrgId(ctx);
+          return seed.orgUnits.filter((unit) => unit.organizationId === orgId);
+        },
+        person: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          const person = findPerson(args.id);
+          if (!person) {
+            return null;
+          }
+          requireSameOrg(ctx, person.organizationId);
+          return person;
+        },
+        currentAssignment: (_parent, args: { personId: string }, ctx: ComatrixContext) => {
+          const person = findPerson(args.personId);
+          if (!person) {
+            return null;
+          }
+          requireSameOrg(ctx, person.organizationId);
+          return currentAssignmentForPerson(seed.assignments, args.personId) ?? null;
+        },
+        directReports: (_parent, args: { managerPersonId: string }, ctx: ComatrixContext) => {
+          const manager = findPerson(args.managerPersonId);
+          if (!manager) {
+            return [];
+          }
+          requireSameOrg(ctx, manager.organizationId);
+          return directReportsOf(seed.assignments, args.managerPersonId);
+        },
         roleProfile: (_parent, args: { id: string }) => roleProfileById(args.id),
         matrix: (_parent, args: { id: string }) => matrixById(args.id),
         assessment: (_parent, args: { id: string }) => assessmentById(args.id),
         developmentPlan: (_parent, args: { assessmentId: string }) =>
           seed.developmentPlans.find((plan) => plan.assessmentId === args.assessmentId) ?? null,
+      },
+      Mutation: {
+        createPerson: (_parent, args: { input: { fullName: string; email: string } }, ctx: ComatrixContext) => {
+          const organizationId = actorOrgId(ctx);
+          const person = {
+            id: `person-${args.input.email.toLowerCase()}`,
+            organizationId,
+            fullName: args.input.fullName,
+            email: args.input.email,
+            status: 'active' as const,
+          };
+          seed.people.push(person);
+          return person;
+        },
+        createAssignment: (
+          _parent,
+          args: {
+            input: {
+              personId: string;
+              orgUnitId: string;
+              managerPersonId?: string | null;
+              roleProfileId: string;
+              effectiveFrom: string;
+            };
+          },
+          ctx: ComatrixContext,
+        ) => {
+          const person = findPerson(args.input.personId);
+          if (!person) {
+            throw new Error(`Unknown person ${args.input.personId}`);
+          }
+          requireSameOrg(ctx, person.organizationId);
+          const assignment = {
+            id: `assignment-${args.input.personId}-${Date.now()}`,
+            personId: args.input.personId,
+            orgUnitId: args.input.orgUnitId,
+            managerPersonId: args.input.managerPersonId ?? undefined,
+            roleProfileId: args.input.roleProfileId,
+            effectiveFrom: args.input.effectiveFrom,
+            status: 'active' as const,
+          };
+          seed.assignments.push(assignment);
+          return assignment;
+        },
+        archiveAssignment: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          const assignment = seed.assignments.find((item) => item.id === args.id);
+          if (!assignment) {
+            throw new Error(`Unknown assignment ${args.id}`);
+          }
+          const person = findPerson(assignment.personId);
+          if (person) {
+            requireSameOrg(ctx, person.organizationId);
+          }
+          assignment.status = 'archived';
+          return assignment;
+        },
       },
       CompetencyCategory: {
         competencies: (category: { id: string }) =>
@@ -80,6 +186,18 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
       User: {
         person: (user: { personId?: string }) =>
           user.personId ? (seed.people.find((person) => person.id === user.personId) ?? null) : null,
+      },
+      Person: {
+        currentAssignment: (person: { id: string }) =>
+          currentAssignmentForPerson(seed.assignments, person.id) ?? null,
+      },
+      Assignment: {
+        person: (assignment: { personId: string }) => personById(assignment.personId),
+        orgUnit: (assignment: { orgUnitId: string }) =>
+          seed.orgUnits.find((unit) => unit.id === assignment.orgUnitId) ?? null,
+        manager: (assignment: { managerPersonId?: string }) =>
+          assignment.managerPersonId ? findPerson(assignment.managerPersonId) : null,
+        roleProfile: (assignment: { roleProfileId: string }) => roleProfileById(assignment.roleProfileId),
       },
       RoleProfile: {
         role: (profile: { roleId: string }) => seed.roles.find((role) => role.id === profile.roleId),

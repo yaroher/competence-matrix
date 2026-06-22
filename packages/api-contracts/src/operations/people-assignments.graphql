@@ -1,0 +1,40 @@
+query PeopleAssignments {
+  currentActor {
+    user {
+      id
+      email
+      role
+    }
+    person {
+      id
+      fullName
+      email
+      currentAssignment {
+        id
+        status
+        effectiveFrom
+        effectiveTo
+        orgUnit {
+          id
+          name
+          type
+        }
+        manager {
+          id
+          fullName
+        }
+        roleProfile {
+          id
+          name
+        }
+      }
+    }
+  }
+  orgUnits {
+    id
+    parentId
+    type
+    name
+    status
+  }
+}

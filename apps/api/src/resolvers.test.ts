@@ -42,3 +42,66 @@ describe('GraphQL API schema', () => {
     expect(json.data.currentActor.user.role).toBe('manager');
   });
 });
+
+describe('people and assignment operations', () => {
+  it('exposes org units for the actor organization', async () => {
+    const json = await run('{ orgUnits { id name type parentId } }');
+
+    expect(json.errors).toBeUndefined();
+    expect(json.data.orgUnits.map((u: { id: string }) => u.id).sort()).toEqual([
+      'unit-backend',
+      'unit-platform',
+      'unit-sre',
+    ]);
+  });
+
+  it('resolves a person by id within the same org', async () => {
+    const json = await run('{ person(id: "person-alexey") { id fullName email } }');
+
+    expect(json.errors).toBeUndefined();
+    expect(json.data.person.fullName).toBe('Alexey Morozov');
+  });
+
+  it('resolves the current assignment for a person with manager and org unit', async () => {
+    const json = await run(
+      '{ currentAssignment(personId: "person-alexey") { id status effectiveFrom orgUnit { id name } manager { id fullName } roleProfile { id name } } }',
+    );
+
+    expect(json.errors).toBeUndefined();
+    const assignment = json.data.currentAssignment;
+    expect(assignment.status).toBe('active');
+    expect(assignment.orgUnit.id).toBe('unit-backend');
+    expect(assignment.manager.fullName).toBe('Marina Volkova');
+    expect(assignment.roleProfile.id).toBe('profile-backend-go-senior');
+  });
+
+  it('resolves direct reports for the manager persona', async () => {
+    const json = await run('{ directReports(managerPersonId: "person-marina") { person { id fullName } } }');
+
+    expect(json.errors).toBeUndefined();
+    expect(json.data.directReports.map((r: { person: { id: string } }) => r.person.id).sort()).toEqual([
+      'person-alexey',
+      'person-expert',
+    ]);
+  });
+
+  it('creates a person via mutation and reads it back', async () => {
+    const mutation =
+      'mutation { createPerson(input: { fullName: "Test Person", email: "test.person@example.test" }) { id fullName email status } }';
+    const created = await run(mutation);
+
+    expect(created.errors).toBeUndefined();
+    expect(created.data.createPerson.email).toBe('test.person@example.test');
+
+    const read = await run(`{ person(id: "${created.data.createPerson.id}") { fullName email } }`);
+    expect(read.data.person.email).toBe('test.person@example.test');
+  });
+
+  it('archives an assignment via mutation', async () => {
+    const mutation = 'mutation { archiveAssignment(id: "assignment-alexey") { id status } }';
+    const result = await run(mutation);
+
+    expect(result.errors).toBeUndefined();
+    expect(result.data.archiveAssignment.status).toBe('archived');
+  });
+});
