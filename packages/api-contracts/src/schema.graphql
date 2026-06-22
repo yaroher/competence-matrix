@@ -1,0 +1,196 @@
+type Query {
+  dashboard: DashboardSummary!
+  organization: Organization!
+  ontology: Ontology!
+  roleProfile(id: ID!): RoleProfile
+  matrix(id: ID!): Matrix
+  assessment(id: ID!): Assessment
+  developmentPlan(assessmentId: ID!): DevelopmentPlan
+}
+
+type DashboardSummary {
+  activeCycleName: String!
+  ontologyDomains: Int!
+  competencies: Int!
+  matrixRequirements: Int!
+  assessmentCoveragePercent: Int!
+  criticalGaps: Int!
+}
+
+type Organization {
+  id: ID!
+  name: String!
+  status: String!
+}
+
+type Ontology {
+  categories: [CompetencyCategory!]!
+  competencies: [Competency!]!
+  relations: [CompetencyRelation!]!
+  levels: [LevelDefinition!]!
+}
+
+type CompetencyCategory {
+  id: ID!
+  parentId: ID
+  categoryType: String!
+  name: String!
+  description: String!
+  sourceKind: String!
+  sourceRef: String
+  sortOrder: Int!
+  status: String!
+  competencies: [Competency!]!
+}
+
+type Competency {
+  id: ID!
+  categoryId: ID!
+  code: String!
+  name: String!
+  description: String!
+  sourceKind: String!
+  sourceRef: String
+  validationStatus: String!
+  tags: [String!]!
+  behavioralIndicators: [BehavioralIndicator!]!
+}
+
+type BehavioralIndicator {
+  level: Int!
+  description: String!
+}
+
+type CompetencyRelation {
+  id: ID!
+  sourceCompetencyId: ID!
+  targetCompetencyId: ID!
+  relationType: String!
+  strength: Float!
+}
+
+type LevelDefinition {
+  value: Int!
+  title: String!
+  description: String!
+}
+
+type RoleProfile {
+  id: ID!
+  name: String!
+  description: String!
+  role: Role!
+  grade: Grade!
+  tasks: [RoleTask!]!
+}
+
+type Role {
+  id: ID!
+  name: String!
+  family: RoleFamily!
+}
+
+type RoleFamily {
+  id: ID!
+  name: String!
+}
+
+type Grade {
+  id: ID!
+  name: String!
+  rank: Int!
+}
+
+type RoleTask {
+  id: ID!
+  name: String!
+  expectedOutcome: String!
+  criticality: String!
+  competencyLinks: [TaskCompetencyLink!]!
+}
+
+type TaskCompetencyLink {
+  id: ID!
+  competency: Competency!
+  criticality: String!
+  neededOnEntry: Boolean!
+}
+
+type Matrix {
+  id: ID!
+  name: String!
+  status: String!
+  roleProfile: RoleProfile!
+  activeRevision: MatrixRevision!
+}
+
+type MatrixRevision {
+  id: ID!
+  version: Int!
+  activatedAt: String!
+  requirements: [MatrixRequirement!]!
+}
+
+type MatrixRequirement {
+  id: ID!
+  competency: Competency!
+  targetLevel: Int!
+  required: Boolean!
+  normalizedWeight: Float!
+  weightSource: String!
+  criticality: String!
+  neededOnEntry: Boolean!
+}
+
+type Assessment {
+  id: ID!
+  person: Person!
+  roleProfile: RoleProfile!
+  status: String!
+  scores: [AssessmentScore!]!
+  gaps: [Gap!]!
+}
+
+type Person {
+  id: ID!
+  fullName: String!
+  email: String!
+  status: String!
+}
+
+type AssessmentScore {
+  id: ID!
+  competency: Competency!
+  source: String!
+  level: Int!
+  confidence: Float!
+  verificationStatus: String!
+  comment: String!
+}
+
+type Gap {
+  competency: Competency!
+  targetLevel: Int!
+  currentLevel: Int!
+  gap: Int!
+  weightedGap: Float!
+  criticality: String!
+}
+
+type DevelopmentPlan {
+  id: ID!
+  person: Person!
+  assessment: Assessment!
+  items: [DevelopmentPlanItem!]!
+}
+
+type DevelopmentPlanItem {
+  id: ID!
+  competency: Competency!
+  gap: Int!
+  title: String!
+  owner: Person!
+  status: String!
+  dueDate: String!
+}
+

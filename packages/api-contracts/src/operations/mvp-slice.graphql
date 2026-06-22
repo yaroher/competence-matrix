@@ -1,0 +1,142 @@
+query MvpSlice {
+  dashboard {
+    activeCycleName
+    ontologyDomains
+    competencies
+    matrixRequirements
+    assessmentCoveragePercent
+    criticalGaps
+  }
+  organization {
+    name
+  }
+  ontology {
+    categories {
+      id
+      name
+      description
+      categoryType
+      sourceKind
+      competencies {
+        id
+        code
+        name
+        description
+        tags
+        behavioralIndicators {
+          level
+          description
+        }
+      }
+    }
+  }
+  roleProfile(id: "profile-backend-go-senior") {
+    name
+    description
+    role {
+      name
+      family {
+        name
+      }
+    }
+    grade {
+      name
+    }
+    tasks {
+      id
+      name
+      expectedOutcome
+      criticality
+    }
+  }
+  matrix(id: "matrix-backend-go-senior") {
+    name
+    status
+    activeRevision {
+      version
+      requirements {
+        id
+        targetLevel
+        normalizedWeight
+        criticality
+        neededOnEntry
+        competency {
+          id
+          code
+          name
+          description
+          tags
+          behavioralIndicators {
+            level
+            description
+          }
+        }
+      }
+    }
+  }
+  assessment(id: "assessment-alexey-backend-go-senior") {
+    id
+    status
+    person {
+      fullName
+      email
+    }
+    scores {
+      id
+      source
+      level
+      confidence
+      verificationStatus
+      comment
+      competency {
+        id
+        code
+        name
+        description
+        tags
+        behavioralIndicators {
+          level
+          description
+        }
+      }
+    }
+    gaps {
+      targetLevel
+      currentLevel
+      gap
+      weightedGap
+      criticality
+      competency {
+        id
+        code
+        name
+        description
+        tags
+        behavioralIndicators {
+          level
+          description
+        }
+      }
+    }
+  }
+  developmentPlan(assessmentId: "assessment-alexey-backend-go-senior") {
+    items {
+      id
+      title
+      gap
+      dueDate
+      status
+      competency {
+        id
+        code
+        name
+        description
+        tags
+        behavioralIndicators {
+          level
+          description
+        }
+      }
+    }
+  }
+}

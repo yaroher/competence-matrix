@@ -1,0 +1,38 @@
+{
+  "name": "competence-matrix",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "yarn@1.22.22",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "build:packages": "turbo run build --filter=@comatrix/domain --filter=@comatrix/api-contracts --filter=@comatrix/db",
+    "dev": "yarn build:packages && turbo run dev --filter=@comatrix/api --filter=@comatrix/web",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "e2e": "yarn workspace @comatrix/web e2e",
+    "lint": "turbo run lint",
+    "codegen": "turbo run codegen",
+    "db:generate": "yarn workspace @comatrix/db db:generate",
+    "db:migrate": "yarn workspace @comatrix/db db:migrate",
+    "db:push": "yarn workspace @comatrix/db db:push",
+    "db:seed": "yarn workspace @comatrix/db seed"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^7.1.3",
+    "@graphql-codegen/typed-document-node": "^7.0.3",
+    "@graphql-codegen/typescript": "^6.0.2",
+    "@graphql-codegen/typescript-operations": "^6.0.4",
+    "@playwright/test": "^1.61.0",
+    "@types/node": "^22.15.34",
+    "concurrently": "^9.1.2",
+    "graphql": "^16.11.0",
+    "tsx": "^4.19.4",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,209 @@
+<main class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">CM</span>
+      <div>
+        <strong>Competence Matrix</strong>
+        <span>v0.1 slice</span>
+      </div>
+    </div>
+
+    <nav aria-label="Primary">
+      @for (item of navItems; track item) {
+        <button
+          z-button
+          zType="ghost"
+          zFull
+          class="nav-button"
+          type="button"
+          [class.nav-active]="selectedNav() === item"
+          (click)="selectedNav.set(item)"
+        >
+          {{ item }}
+        </button>
+      }
+    </nav>
+  </aside>
+
+  <section class="workspace">
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">{{ data()?.organization?.name ?? 'Loading organization' }}</span>
+        <h1>{{ data()?.roleProfile?.name ?? 'Backend Go Engineer / Senior' }}</h1>
+      </div>
+      <div class="topbar-actions">
+        <z-badge zType="secondary" zShape="pill">GraphQL-first</z-badge>
+        <z-badge zType="outline" zShape="pill">Extensible ontology</z-badge>
+      </div>
+    </header>
+
+    @if (data(); as vm) {
+      <section class="metrics" aria-label="Dashboard metrics">
+        <article>
+          <span>Active cycle</span>
+          <strong>{{ vm.dashboard.activeCycleName }}</strong>
+        </article>
+        <article>
+          <span>Ontology domains</span>
+          <strong>{{ vm.dashboard.ontologyDomains }}</strong>
+        </article>
+        <article>
+          <span>Competencies</span>
+          <strong>{{ vm.dashboard.competencies }}</strong>
+        </article>
+        <article>
+          <span>Coverage</span>
+          <strong>{{ vm.dashboard.assessmentCoveragePercent }}%</strong>
+        </article>
+      </section>
+
+      <section class="grid grid-main">
+        <article class="panel ontology-panel">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">Ontology</span>
+              <h2>Organization-owned IT tree</h2>
+            </div>
+            <z-badge zType="outline" zShape="pill">{{ vm.ontology.categories.length }} domains</z-badge>
+          </div>
+
+          <div class="ontology-list">
+            @for (category of vm.ontology.categories; track category.id) {
+              <section class="domain-row">
+                <div>
+                  <h3>{{ category.name }}</h3>
+                  <p>{{ category.description }}</p>
+                </div>
+                <span>{{ category.competencies.length }}</span>
+              </section>
+            }
+          </div>
+        </article>
+
+        <article class="panel profile-panel">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">Role profile</span>
+              <h2>{{ vm.roleProfile.role.family.name }} / {{ vm.roleProfile.grade.name }}</h2>
+            </div>
+          </div>
+
+          <p class="lede">{{ vm.roleProfile.description }}</p>
+
+          <div class="task-list">
+            @for (task of vm.roleProfile.tasks; track task.id) {
+              <section>
+                <strong>{{ task.name }}</strong>
+                <p>{{ task.expectedOutcome }}</p>
+                <span [ngClass]="task.criticality">{{ task.criticality }}</span>
+              </section>
+            }
+          </div>
+        </article>
+      </section>
+
+      <section class="grid grid-two">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">Matrix</span>
+              <h2>{{ vm.matrix.name }}</h2>
+            </div>
+            <z-badge zType="outline" zShape="pill">r{{ vm.matrix.activeRevision.version }}</z-badge>
+          </div>
+
+          <div class="table matrix-table">
+            <div class="table-head">
+              <span>Competency</span>
+              <span>Target</span>
+              <span>Weight</span>
+              <span>Entry</span>
+            </div>
+            @for (requirement of vm.matrix.activeRevision.requirements; track requirementTrack($index, requirement)) {
+              <div class="table-row">
+                <span>{{ requirement.competency.name }}</span>
+                <span>{{ requirement.targetLevel }}</span>
+                <span>{{ requirement.normalizedWeight | number: '1.2-2' }}</span>
+                <span>{{ requirement.neededOnEntry ? 'yes' : 'later' }}</span>
+              </div>
+            }
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">Assessment</span>
+              <h2>{{ vm.assessment.person.fullName }}</h2>
+            </div>
+            <z-badge zType="secondary" zShape="pill">{{ vm.assessment.status }}</z-badge>
+          </div>
+
+          <table z-table zType="bordered" zSize="compact" class="score-table z-score-table">
+            <caption z-table-caption>Assessment scores by source</caption>
+            <thead z-table-header>
+              <tr z-table-row>
+                <th z-table-head>Competency</th>
+                <th z-table-head>Self</th>
+                <th z-table-head>Manager</th>
+                <th z-table-head>Final</th>
+              </tr>
+            </thead>
+            <tbody z-table-body>
+              @for (row of scoreRows(); track row.competency) {
+                <tr z-table-row>
+                  <td z-table-cell>{{ row.competency }}</td>
+                  <td z-table-cell>{{ row.self?.level ?? '-' }}</td>
+                  <td z-table-cell>{{ row.manager?.level ?? '-' }}</td>
+                  <td z-table-cell>{{ row.final?.level ?? '-' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </article>
+      </section>
+
+      <section class="grid grid-two">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">Gap</span>
+              <h2>Priority gaps</h2>
+            </div>
+            <z-badge zType="destructive" zShape="pill">{{ vm.dashboard.criticalGaps }} critical</z-badge>
+          </div>
+
+          <div class="gap-list">
+            @for (gap of topGaps(); track gapTrack($index, gap)) {
+              <section>
+                <div>
+                  <strong>{{ gap.competency.name }}</strong>
+                  <span>{{ gap.criticality }} / weighted {{ gap.weightedGap | number: '1.2-2' }}</span>
+                </div>
+                <meter min="0" max="5" [value]="gap.currentLevel"></meter>
+                <b>{{ gap.currentLevel }} -> {{ gap.targetLevel }}</b>
+              </section>
+            }
+          </div>
+        </article>
+
+        <z-card class="panel z-card-panel" zTitle="Plan items" zDescription="Development">
+          <div class="plan-list">
+            @for (item of vm.developmentPlan.items; track item.id) {
+              <section>
+                <strong>{{ item.title }}</strong>
+                <p>{{ item.competency.code }} / due {{ item.dueDate }}</p>
+                <span>{{ item.status }}</span>
+              </section>
+            }
+          </div>
+        </z-card>
+      </section>
+    } @else {
+      <section class="loading">
+        <strong>Loading MVP slice</strong>
+        <span>Waiting for GraphQL API on /graphql</span>
+      </section>
+    }
+  </section>
+</main>
