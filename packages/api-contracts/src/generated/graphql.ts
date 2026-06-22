@@ -3,544 +3,102 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
-export type Maybe<T> = T | null;
-export type InputMaybe<T> = T | null;
-/** All built-in and custom scalars, mapped to their actual values */
-export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
-};
-
-export type Actor = {
-  readonly __typename?: 'Actor';
-  readonly person: Maybe<Person>;
-  readonly user: User;
-};
-
-export type Assessment = {
-  readonly __typename?: 'Assessment';
-  readonly gaps: ReadonlyArray<Gap>;
-  readonly id: Scalars['ID']['output'];
-  readonly person: Person;
-  readonly roleProfile: RoleProfile;
-  readonly scores: ReadonlyArray<AssessmentScore>;
-  readonly status: Scalars['String']['output'];
-};
-
-export type AssessmentScore = {
-  readonly __typename?: 'AssessmentScore';
-  readonly comment: Scalars['String']['output'];
-  readonly competency: Competency;
-  readonly confidence: Scalars['Float']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly level: Scalars['Int']['output'];
-  readonly source: Scalars['String']['output'];
-  readonly verificationStatus: Scalars['String']['output'];
-};
-
-export type Assignment = {
-  readonly __typename?: 'Assignment';
-  readonly effectiveFrom: Scalars['String']['output'];
-  readonly effectiveTo: Maybe<Scalars['String']['output']>;
-  readonly id: Scalars['ID']['output'];
-  readonly manager: Maybe<Person>;
-  readonly orgUnit: OrgUnit;
-  readonly person: Person;
-  readonly roleProfile: RoleProfile;
-  readonly status: Scalars['String']['output'];
-};
-
-export type AuditEvent = {
-  readonly __typename?: 'AuditEvent';
-  readonly action: Scalars['String']['output'];
-  readonly actorPersonId: Maybe<Scalars['ID']['output']>;
-  readonly actorUserId: Maybe<Scalars['ID']['output']>;
-  readonly createdAt: Scalars['String']['output'];
-  readonly entityId: Scalars['ID']['output'];
-  readonly entityType: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly summary: Scalars['String']['output'];
-};
-
-export type BehavioralIndicator = {
-  readonly __typename?: 'BehavioralIndicator';
-  readonly description: Scalars['String']['output'];
-  readonly level: Scalars['Int']['output'];
-};
-
-export type CalibrationDecision = {
-  readonly __typename?: 'CalibrationDecision';
-  readonly calibratedLevel: Scalars['Int']['output'];
-  readonly diff: Scalars['Int']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly originalLevel: Scalars['Int']['output'];
-  readonly reason: Scalars['String']['output'];
-  readonly score: AssessmentScore;
-};
-
-export type CalibrationSession = {
-  readonly __typename?: 'CalibrationSession';
-  readonly decisions: ReadonlyArray<CalibrationDecision>;
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly status: Scalars['String']['output'];
-};
-
-export type Competency = {
-  readonly __typename?: 'Competency';
-  readonly behavioralIndicators: ReadonlyArray<BehavioralIndicator>;
-  readonly categoryId: Scalars['ID']['output'];
-  readonly code: Scalars['String']['output'];
-  readonly description: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly sourceKind: Scalars['String']['output'];
-  readonly sourceRef: Maybe<Scalars['String']['output']>;
-  readonly tags: ReadonlyArray<Scalars['String']['output']>;
-  readonly validationStatus: Scalars['String']['output'];
-};
-
-export type CompetencyCategory = {
-  readonly __typename?: 'CompetencyCategory';
-  readonly categoryType: Scalars['String']['output'];
-  readonly competencies: ReadonlyArray<Competency>;
-  readonly description: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly parentId: Maybe<Scalars['ID']['output']>;
-  readonly sortOrder: Scalars['Int']['output'];
-  readonly sourceKind: Scalars['String']['output'];
-  readonly sourceRef: Maybe<Scalars['String']['output']>;
-  readonly status: Scalars['String']['output'];
-};
-
-export type CompetencyGapSummary = {
-  readonly __typename?: 'CompetencyGapSummary';
-  readonly assessedPeople: Scalars['Int']['output'];
-  readonly avgGap: Scalars['Float']['output'];
-  readonly competencyId: Scalars['ID']['output'];
-  readonly competencyName: Scalars['String']['output'];
-  readonly criticality: Scalars['String']['output'];
-  readonly isCritical: Scalars['Boolean']['output'];
-  readonly totalGap: Scalars['Int']['output'];
-};
-
 export type CompetencyImportInput = {
-  readonly category: Scalars['String']['input'];
-  readonly categoryType: InputMaybe<Scalars['String']['input']>;
-  readonly code: Scalars['String']['input'];
-  readonly description: InputMaybe<Scalars['String']['input']>;
-  readonly name: Scalars['String']['input'];
-  readonly tags: InputMaybe<ReadonlyArray<Scalars['String']['input']>>;
-};
-
-export type CompetencyRelation = {
-  readonly __typename?: 'CompetencyRelation';
-  readonly id: Scalars['ID']['output'];
-  readonly relationType: Scalars['String']['output'];
-  readonly sourceCompetencyId: Scalars['ID']['output'];
-  readonly strength: Scalars['Float']['output'];
-  readonly targetCompetencyId: Scalars['ID']['output'];
-};
-
-export type CreateAssignmentInput = {
-  readonly effectiveFrom: Scalars['String']['input'];
-  readonly managerPersonId: InputMaybe<Scalars['ID']['input']>;
-  readonly orgUnitId: Scalars['ID']['input'];
-  readonly personId: Scalars['ID']['input'];
-  readonly roleProfileId: Scalars['ID']['input'];
+  readonly category: string;
+  readonly categoryType?: string | null | undefined;
+  readonly code: string;
+  readonly description?: string | null | undefined;
+  readonly name: string;
+  readonly tags?: ReadonlyArray<string> | null | undefined;
 };
 
 export type CreatePersonInput = {
-  readonly email: Scalars['String']['input'];
-  readonly fullName: Scalars['String']['input'];
+  readonly email: string;
+  readonly fullName: string;
 };
 
-export type DashboardSummary = {
-  readonly __typename?: 'DashboardSummary';
-  readonly activeCycleName: Scalars['String']['output'];
-  readonly assessmentCoveragePercent: Scalars['Int']['output'];
-  readonly competencies: Scalars['Int']['output'];
-  readonly criticalGaps: Scalars['Int']['output'];
-  readonly matrixRequirements: Scalars['Int']['output'];
-  readonly ontologyDomains: Scalars['Int']['output'];
-};
-
-export type DevelopmentPlan = {
-  readonly __typename?: 'DevelopmentPlan';
-  readonly assessment: Assessment;
-  readonly id: Scalars['ID']['output'];
-  readonly items: ReadonlyArray<DevelopmentPlanItem>;
-  readonly person: Person;
-};
-
-export type DevelopmentPlanItem = {
-  readonly __typename?: 'DevelopmentPlanItem';
-  readonly competency: Competency;
-  readonly dueDate: Scalars['String']['output'];
-  readonly gap: Scalars['Int']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly owner: Person;
-  readonly status: Scalars['String']['output'];
-  readonly title: Scalars['String']['output'];
-};
-
-export type Gap = {
-  readonly __typename?: 'Gap';
-  readonly competency: Competency;
-  readonly criticality: Scalars['String']['output'];
-  readonly currentLevel: Scalars['Int']['output'];
-  readonly gap: Scalars['Int']['output'];
-  readonly targetLevel: Scalars['Int']['output'];
-  readonly weightedGap: Scalars['Float']['output'];
-};
-
-export type GapExportRow = {
-  readonly __typename?: 'GapExportRow';
-  readonly competencyCode: Scalars['String']['output'];
-  readonly competencyName: Scalars['String']['output'];
-  readonly criticality: Scalars['String']['output'];
-  readonly currentLevel: Scalars['Int']['output'];
-  readonly gap: Scalars['Int']['output'];
-  readonly targetLevel: Scalars['Int']['output'];
-  readonly weightedGap: Scalars['Float']['output'];
-};
-
-export type Grade = {
-  readonly __typename?: 'Grade';
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly rank: Scalars['Int']['output'];
-};
-
-export type ImportRowError = {
-  readonly __typename?: 'ImportRowError';
-  readonly field: Maybe<Scalars['String']['output']>;
-  readonly message: Scalars['String']['output'];
-  readonly row: Scalars['Int']['output'];
-};
-
-export type ImportValidationReport = {
-  readonly __typename?: 'ImportValidationReport';
-  readonly applied: Scalars['Boolean']['output'];
-  readonly categoriesParsed: Scalars['Int']['output'];
-  readonly competenciesParsed: Scalars['Int']['output'];
-  readonly errors: ReadonlyArray<ImportRowError>;
-  readonly rowCount: Scalars['Int']['output'];
-  readonly valid: Scalars['Boolean']['output'];
-};
-
-export type LevelDefinition = {
-  readonly __typename?: 'LevelDefinition';
-  readonly description: Scalars['String']['output'];
-  readonly title: Scalars['String']['output'];
-  readonly value: Scalars['Int']['output'];
-};
-
-export type LevelDimensionDescriptor = {
-  readonly __typename?: 'LevelDimensionDescriptor';
-  readonly description: Scalars['String']['output'];
-  readonly dimension: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly levelValue: Scalars['Int']['output'];
-};
-
-export type LevelScale = {
-  readonly __typename?: 'LevelScale';
-  readonly dimensionDescriptors: ReadonlyArray<LevelDimensionDescriptor>;
-  readonly id: Scalars['ID']['output'];
-  readonly isDefault: Scalars['Boolean']['output'];
-  readonly levels: ReadonlyArray<LevelDefinition>;
-  readonly name: Scalars['String']['output'];
-  readonly status: Scalars['String']['output'];
-};
-
-export type ManagerDashboard = {
-  readonly __typename?: 'ManagerDashboard';
-  readonly managerPersonId: Scalars['ID']['output'];
-  readonly reports: ReadonlyArray<ManagerReportCoverage>;
-};
-
-export type ManagerReportCoverage = {
-  readonly __typename?: 'ManagerReportCoverage';
-  readonly assessmentStatus: Maybe<Scalars['String']['output']>;
-  readonly criticalGapCount: Scalars['Int']['output'];
-  readonly fullName: Scalars['String']['output'];
-  readonly gapCount: Scalars['Int']['output'];
-  readonly hasAssessment: Scalars['Boolean']['output'];
-  readonly personId: Scalars['ID']['output'];
-};
-
-export type Matrix = {
-  readonly __typename?: 'Matrix';
-  readonly activeRevision: MatrixRevision;
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly roleProfile: RoleProfile;
-  readonly status: Scalars['String']['output'];
-};
-
-export type MatrixRequirement = {
-  readonly __typename?: 'MatrixRequirement';
-  readonly competency: Competency;
-  readonly criticality: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly neededOnEntry: Scalars['Boolean']['output'];
-  readonly normalizedWeight: Scalars['Float']['output'];
-  readonly required: Scalars['Boolean']['output'];
-  readonly targetLevel: Scalars['Int']['output'];
-  readonly weightSource: Scalars['String']['output'];
-};
-
-export type MatrixRequirementExportRow = {
-  readonly __typename?: 'MatrixRequirementExportRow';
-  readonly competencyCode: Scalars['String']['output'];
-  readonly competencyName: Scalars['String']['output'];
-  readonly criticality: Scalars['String']['output'];
-  readonly neededOnEntry: Scalars['Boolean']['output'];
-  readonly normalizedWeight: Scalars['Float']['output'];
-  readonly required: Scalars['Boolean']['output'];
-  readonly targetLevel: Scalars['Int']['output'];
-};
-
-export type MatrixRevision = {
-  readonly __typename?: 'MatrixRevision';
-  readonly activatedAt: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly requirements: ReadonlyArray<MatrixRequirement>;
-  readonly version: Scalars['Int']['output'];
-};
-
-export type Mutation = {
-  readonly __typename?: 'Mutation';
-  readonly activateMatrix: Matrix;
-  readonly archiveAssignment: Assignment;
-  readonly createAssignment: Assignment;
-  readonly createPerson: Person;
-  readonly finalizeAssessment: Assessment;
-  readonly importCompetencies: ImportValidationReport;
-  readonly setDefaultScoringRule: ScoringRule;
-};
-
-
-export type MutationActivateMatrixArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationArchiveAssignmentArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationCreateAssignmentArgs = {
-  input: CreateAssignmentInput;
-};
-
-
-export type MutationCreatePersonArgs = {
-  input: CreatePersonInput;
-};
-
-
-export type MutationFinalizeAssessmentArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationImportCompetenciesArgs = {
-  input: ReadonlyArray<CompetencyImportInput>;
-};
-
-
-export type MutationSetDefaultScoringRuleArgs = {
-  id: Scalars['ID']['input'];
-};
-
-export type Ontology = {
-  readonly __typename?: 'Ontology';
-  readonly categories: ReadonlyArray<CompetencyCategory>;
-  readonly competencies: ReadonlyArray<Competency>;
-  readonly levels: ReadonlyArray<LevelDefinition>;
-  readonly relations: ReadonlyArray<CompetencyRelation>;
-};
-
-export type OrgUnit = {
-  readonly __typename?: 'OrgUnit';
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly parentId: Maybe<Scalars['ID']['output']>;
-  readonly status: Scalars['String']['output'];
-  readonly type: Scalars['String']['output'];
-};
-
-export type Organization = {
-  readonly __typename?: 'Organization';
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly status: Scalars['String']['output'];
-};
-
-export type OrganizationGapSummary = {
-  readonly __typename?: 'OrganizationGapSummary';
-  readonly assessedPeople: Scalars['Int']['output'];
-  readonly byCompetency: ReadonlyArray<CompetencyGapSummary>;
-  readonly coveragePercent: Scalars['Int']['output'];
-  readonly criticalGapCount: Scalars['Int']['output'];
-  readonly totalPeople: Scalars['Int']['output'];
-};
-
-export type Person = {
-  readonly __typename?: 'Person';
-  readonly currentAssignment: Maybe<Assignment>;
-  readonly email: Scalars['String']['output'];
-  readonly fullName: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly status: Scalars['String']['output'];
-};
-
-export type Query = {
-  readonly __typename?: 'Query';
-  readonly assessment: Maybe<Assessment>;
-  readonly auditEvents: ReadonlyArray<AuditEvent>;
-  readonly calibrationSessions: ReadonlyArray<CalibrationSession>;
-  readonly currentActor: Actor;
-  readonly currentAssignment: Maybe<Assignment>;
-  readonly dashboard: DashboardSummary;
-  readonly developmentPlan: Maybe<DevelopmentPlan>;
-  readonly directReports: ReadonlyArray<Assignment>;
-  readonly exportGapSummary: ReadonlyArray<GapExportRow>;
-  readonly exportMatrixRequirements: ReadonlyArray<MatrixRequirementExportRow>;
-  readonly levelScales: ReadonlyArray<LevelScale>;
-  readonly managerDashboard: Maybe<ManagerDashboard>;
-  readonly matrix: Maybe<Matrix>;
-  readonly ontology: Ontology;
-  readonly orgUnits: ReadonlyArray<OrgUnit>;
-  readonly organization: Organization;
-  readonly organizationGapSummary: OrganizationGapSummary;
-  readonly people: ReadonlyArray<Person>;
-  readonly person: Maybe<Person>;
-  readonly roleProfile: Maybe<RoleProfile>;
-  readonly scoringRules: ReadonlyArray<ScoringRule>;
-};
-
-
-export type QueryAssessmentArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryAuditEventsArgs = {
-  entityId: InputMaybe<Scalars['ID']['input']>;
-  entityType: InputMaybe<Scalars['String']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryCurrentAssignmentArgs = {
-  personId: Scalars['ID']['input'];
-};
-
-
-export type QueryDevelopmentPlanArgs = {
-  assessmentId: Scalars['ID']['input'];
-};
-
-
-export type QueryDirectReportsArgs = {
-  managerPersonId: Scalars['ID']['input'];
-};
-
-
-export type QueryExportGapSummaryArgs = {
-  assessmentId: Scalars['ID']['input'];
-};
-
-
-export type QueryExportMatrixRequirementsArgs = {
-  matrixRevisionId: Scalars['ID']['input'];
-};
-
-
-export type QueryManagerDashboardArgs = {
-  managerPersonId: Scalars['ID']['input'];
-};
-
-
-export type QueryMatrixArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryPersonArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryRoleProfileArgs = {
-  id: Scalars['ID']['input'];
-};
-
-export type Role = {
-  readonly __typename?: 'Role';
-  readonly family: RoleFamily;
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-};
-
-export type RoleFamily = {
-  readonly __typename?: 'RoleFamily';
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-};
-
-export type RoleProfile = {
-  readonly __typename?: 'RoleProfile';
-  readonly description: Scalars['String']['output'];
-  readonly grade: Grade;
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly role: Role;
-  readonly tasks: ReadonlyArray<RoleTask>;
-};
-
-export type RoleTask = {
-  readonly __typename?: 'RoleTask';
-  readonly competencyLinks: ReadonlyArray<TaskCompetencyLink>;
-  readonly criticality: Scalars['String']['output'];
-  readonly expectedOutcome: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly name: Scalars['String']['output'];
-};
-
-export type ScoringRule = {
-  readonly __typename?: 'ScoringRule';
-  readonly confidenceThreshold: Scalars['Float']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly isDefault: Scalars['Boolean']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly status: Scalars['String']['output'];
-};
-
-export type TaskCompetencyLink = {
-  readonly __typename?: 'TaskCompetencyLink';
-  readonly competency: Competency;
-  readonly criticality: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly neededOnEntry: Scalars['Boolean']['output'];
-};
-
-export type User = {
-  readonly __typename?: 'User';
-  readonly email: Scalars['String']['output'];
-  readonly id: Scalars['ID']['output'];
-  readonly person: Maybe<Person>;
-  readonly role: Scalars['String']['output'];
-  readonly status: Scalars['String']['output'];
-};
+export type ManagerDashboardQueryVariables = Exact<{
+  managerPersonId: string;
+}>;
+
+
+export type ManagerDashboardQuery = { readonly managerDashboard: { readonly managerPersonId: string, readonly reports: ReadonlyArray<{ readonly personId: string, readonly fullName: string, readonly hasAssessment: boolean, readonly gapCount: number, readonly criticalGapCount: number }> } | null };
+
+export type OrganizationGapSummaryQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OrganizationGapSummaryQuery = { readonly organizationGapSummary: { readonly assessedPeople: number, readonly totalPeople: number, readonly coveragePercent: number, readonly criticalGapCount: number, readonly byCompetency: ReadonlyArray<{ readonly competencyName: string, readonly criticality: string, readonly avgGap: number, readonly isCritical: boolean }> } };
+
+export type OrganizationCoverageQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OrganizationCoverageQuery = { readonly organizationGapSummary: { readonly coveragePercent: number } };
+
+export type AuditEventsRecentQueryVariables = Exact<{
+  limit?: number | null | undefined;
+}>;
+
+
+export type AuditEventsRecentQuery = { readonly auditEvents: ReadonlyArray<{ readonly action: string, readonly entityType: string, readonly entityId: string, readonly actorUserId: string | null, readonly createdAt: string }> };
+
+export type AuditEventsForEntityQueryVariables = Exact<{
+  entityType: string;
+  entityId: string;
+}>;
+
+
+export type AuditEventsForEntityQuery = { readonly auditEvents: ReadonlyArray<{ readonly action: string }> };
+
+export type FinalizeAssessmentMutationVariables = Exact<{
+  id: string;
+}>;
+
+
+export type FinalizeAssessmentMutation = { readonly finalizeAssessment: { readonly id: string, readonly status: string } };
+
+export type ActivateMatrixMutationVariables = Exact<{
+  id: string;
+}>;
+
+
+export type ActivateMatrixMutation = { readonly activateMatrix: { readonly id: string, readonly status: string } };
+
+export type CalibrationSessionsDetailedQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CalibrationSessionsDetailedQuery = { readonly calibrationSessions: ReadonlyArray<{ readonly id: string, readonly name: string, readonly status: string, readonly decisions: ReadonlyArray<{ readonly id: string, readonly originalLevel: number, readonly calibratedLevel: number, readonly diff: number, readonly reason: string, readonly score: { readonly id: string, readonly competency: { readonly name: string } } }> }> };
+
+export type ExportMatrixAndGapsQueryVariables = Exact<{
+  matrixRevisionId: string;
+  assessmentId: string;
+}>;
+
+
+export type ExportMatrixAndGapsQuery = { readonly exportMatrixRequirements: ReadonlyArray<{ readonly competencyCode: string, readonly competencyName: string, readonly targetLevel: number, readonly criticality: string }>, readonly exportGapSummary: ReadonlyArray<{ readonly competencyCode: string, readonly gap: number, readonly weightedGap: number }> };
+
+export type ImportCompetenciesMutationVariables = Exact<{
+  input: ReadonlyArray<CompetencyImportInput> | CompetencyImportInput;
+}>;
+
+
+export type ImportCompetenciesMutation = { readonly importCompetencies: { readonly applied: boolean, readonly valid: boolean, readonly rowCount: number, readonly categoriesParsed: number, readonly competenciesParsed: number, readonly errors: ReadonlyArray<{ readonly row: number, readonly field: string | null, readonly message: string }> } };
+
+export type LevelScalesDetailedQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type LevelScalesDetailedQuery = { readonly levelScales: ReadonlyArray<{ readonly id: string, readonly name: string, readonly isDefault: boolean, readonly levels: ReadonlyArray<{ readonly value: number, readonly title: string }>, readonly dimensionDescriptors: ReadonlyArray<{ readonly levelValue: number, readonly dimension: string, readonly description: string }> }> };
+
+export type ScoringRulesListQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ScoringRulesListQuery = { readonly scoringRules: ReadonlyArray<{ readonly id: string, readonly name: string, readonly isDefault: boolean, readonly confidenceThreshold: number }> };
+
+export type SetDefaultScoringRuleMutationVariables = Exact<{
+  id: string;
+}>;
+
+
+export type SetDefaultScoringRuleMutation = { readonly setDefaultScoringRule: { readonly id: string, readonly name: string, readonly isDefault: boolean, readonly confidenceThreshold: number } };
 
 export type MvpSliceQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -552,6 +110,89 @@ export type PeopleAssignmentsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type PeopleAssignmentsQuery = { readonly currentActor: { readonly user: { readonly id: string, readonly email: string, readonly role: string }, readonly person: { readonly id: string, readonly fullName: string, readonly email: string, readonly currentAssignment: { readonly id: string, readonly status: string, readonly effectiveFrom: string, readonly effectiveTo: string | null, readonly orgUnit: { readonly id: string, readonly name: string, readonly type: string }, readonly manager: { readonly id: string, readonly fullName: string } | null, readonly roleProfile: { readonly id: string, readonly name: string } } | null } | null }, readonly orgUnits: ReadonlyArray<{ readonly id: string, readonly parentId: string | null, readonly type: string, readonly name: string, readonly status: string }>, readonly people: ReadonlyArray<{ readonly id: string, readonly fullName: string, readonly email: string, readonly currentAssignment: { readonly id: string, readonly status: string, readonly effectiveFrom: string, readonly orgUnit: { readonly id: string, readonly name: string, readonly type: string }, readonly manager: { readonly id: string, readonly fullName: string } | null, readonly roleProfile: { readonly id: string, readonly name: string } } | null }>, readonly calibrationSessions: ReadonlyArray<{ readonly id: string, readonly name: string, readonly status: string, readonly decisions: ReadonlyArray<{ readonly id: string, readonly originalLevel: number, readonly calibratedLevel: number, readonly diff: number, readonly reason: string, readonly score: { readonly id: string, readonly competency: { readonly id: string, readonly code: string, readonly name: string } } }> }>, readonly levelScales: ReadonlyArray<{ readonly id: string, readonly name: string, readonly isDefault: boolean, readonly status: string, readonly levels: ReadonlyArray<{ readonly value: number, readonly title: string, readonly description: string }>, readonly dimensionDescriptors: ReadonlyArray<{ readonly id: string, readonly levelValue: number, readonly dimension: string, readonly description: string }> }>, readonly scoringRules: ReadonlyArray<{ readonly id: string, readonly name: string, readonly confidenceThreshold: number, readonly isDefault: boolean, readonly status: string }>, readonly organizationGapSummary: { readonly assessedPeople: number, readonly totalPeople: number, readonly coveragePercent: number, readonly criticalGapCount: number, readonly byCompetency: ReadonlyArray<{ readonly competencyId: string, readonly competencyName: string, readonly criticality: string, readonly assessedPeople: number, readonly totalGap: number, readonly avgGap: number, readonly isCritical: boolean }> }, readonly auditEvents: ReadonlyArray<{ readonly id: string, readonly action: string, readonly entityType: string, readonly entityId: string, readonly summary: string, readonly actorUserId: string | null, readonly createdAt: string }> };
 
+export type DashboardSummaryQueryVariables = Exact<{ [key: string]: never; }>;
 
+
+export type DashboardSummaryQuery = { readonly dashboard: { readonly activeCycleName: string, readonly competencies: number, readonly criticalGaps: number } };
+
+export type CurrentActorDetailedQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CurrentActorDetailedQuery = { readonly currentActor: { readonly user: { readonly id: string, readonly email: string, readonly role: string, readonly person: { readonly id: string, readonly fullName: string } | null }, readonly person: { readonly id: string, readonly fullName: string } | null } };
+
+export type CurrentActorRoleQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CurrentActorRoleQuery = { readonly currentActor: { readonly user: { readonly id: string, readonly role: string } } };
+
+export type OrgUnitsListQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OrgUnitsListQuery = { readonly orgUnits: ReadonlyArray<{ readonly id: string, readonly name: string, readonly type: string, readonly parentId: string | null }> };
+
+export type PeopleListQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PeopleListQuery = { readonly people: ReadonlyArray<{ readonly id: string, readonly fullName: string, readonly currentAssignment: { readonly roleProfile: { readonly name: string } } | null }> };
+
+export type PersonByIdQueryVariables = Exact<{
+  id: string;
+}>;
+
+
+export type PersonByIdQuery = { readonly person: { readonly id: string, readonly fullName: string, readonly email: string } | null };
+
+export type CurrentAssignmentForPersonQueryVariables = Exact<{
+  personId: string;
+}>;
+
+
+export type CurrentAssignmentForPersonQuery = { readonly currentAssignment: { readonly id: string, readonly status: string, readonly effectiveFrom: string, readonly orgUnit: { readonly id: string, readonly name: string }, readonly manager: { readonly id: string, readonly fullName: string } | null, readonly roleProfile: { readonly id: string, readonly name: string } } | null };
+
+export type DirectReportsQueryVariables = Exact<{
+  managerPersonId: string;
+}>;
+
+
+export type DirectReportsQuery = { readonly directReports: ReadonlyArray<{ readonly person: { readonly id: string, readonly fullName: string } }> };
+
+export type CreatePersonMutationVariables = Exact<{
+  input: CreatePersonInput;
+}>;
+
+
+export type CreatePersonMutation = { readonly createPerson: { readonly id: string, readonly fullName: string, readonly email: string, readonly status: string } };
+
+export type ArchiveAssignmentMutationVariables = Exact<{
+  id: string;
+}>;
+
+
+export type ArchiveAssignmentMutation = { readonly archiveAssignment: { readonly id: string, readonly status: string } };
+
+
+export const ManagerDashboardDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ManagerDashboard"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"managerPersonId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"managerDashboard"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"managerPersonId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"managerPersonId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"managerPersonId"}},{"kind":"Field","name":{"kind":"Name","value":"reports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"personId"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"hasAssessment"}},{"kind":"Field","name":{"kind":"Name","value":"gapCount"}},{"kind":"Field","name":{"kind":"Name","value":"criticalGapCount"}}]}}]}}]}}]} as unknown as DocumentNode<ManagerDashboardQuery, ManagerDashboardQueryVariables>;
+export const OrganizationGapSummaryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OrganizationGapSummary"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"organizationGapSummary"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"assessedPeople"}},{"kind":"Field","name":{"kind":"Name","value":"totalPeople"}},{"kind":"Field","name":{"kind":"Name","value":"coveragePercent"}},{"kind":"Field","name":{"kind":"Name","value":"criticalGapCount"}},{"kind":"Field","name":{"kind":"Name","value":"byCompetency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"competencyName"}},{"kind":"Field","name":{"kind":"Name","value":"criticality"}},{"kind":"Field","name":{"kind":"Name","value":"avgGap"}},{"kind":"Field","name":{"kind":"Name","value":"isCritical"}}]}}]}}]}}]} as unknown as DocumentNode<OrganizationGapSummaryQuery, OrganizationGapSummaryQueryVariables>;
+export const OrganizationCoverageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OrganizationCoverage"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"organizationGapSummary"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"coveragePercent"}}]}}]}}]} as unknown as DocumentNode<OrganizationCoverageQuery, OrganizationCoverageQueryVariables>;
+export const AuditEventsRecentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AuditEventsRecent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"20"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"auditEvents"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"action"}},{"kind":"Field","name":{"kind":"Name","value":"entityType"}},{"kind":"Field","name":{"kind":"Name","value":"entityId"}},{"kind":"Field","name":{"kind":"Name","value":"actorUserId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<AuditEventsRecentQuery, AuditEventsRecentQueryVariables>;
+export const AuditEventsForEntityDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AuditEventsForEntity"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"entityType"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"entityId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"auditEvents"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"entityType"},"value":{"kind":"Variable","name":{"kind":"Name","value":"entityType"}}},{"kind":"Argument","name":{"kind":"Name","value":"entityId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"entityId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"action"}}]}}]}}]} as unknown as DocumentNode<AuditEventsForEntityQuery, AuditEventsForEntityQueryVariables>;
+export const FinalizeAssessmentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"FinalizeAssessment"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"finalizeAssessment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<FinalizeAssessmentMutation, FinalizeAssessmentMutationVariables>;
+export const ActivateMatrixDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ActivateMatrix"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activateMatrix"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<ActivateMatrixMutation, ActivateMatrixMutationVariables>;
+export const CalibrationSessionsDetailedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"CalibrationSessionsDetailed"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"calibrationSessions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"decisions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"originalLevel"}},{"kind":"Field","name":{"kind":"Name","value":"calibratedLevel"}},{"kind":"Field","name":{"kind":"Name","value":"diff"}},{"kind":"Field","name":{"kind":"Name","value":"reason"}},{"kind":"Field","name":{"kind":"Name","value":"score"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<CalibrationSessionsDetailedQuery, CalibrationSessionsDetailedQueryVariables>;
+export const ExportMatrixAndGapsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ExportMatrixAndGaps"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"matrixRevisionId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assessmentId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"exportMatrixRequirements"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"matrixRevisionId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"matrixRevisionId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"competencyCode"}},{"kind":"Field","name":{"kind":"Name","value":"competencyName"}},{"kind":"Field","name":{"kind":"Name","value":"targetLevel"}},{"kind":"Field","name":{"kind":"Name","value":"criticality"}}]}},{"kind":"Field","name":{"kind":"Name","value":"exportGapSummary"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assessmentId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assessmentId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"competencyCode"}},{"kind":"Field","name":{"kind":"Name","value":"gap"}},{"kind":"Field","name":{"kind":"Name","value":"weightedGap"}}]}}]}}]} as unknown as DocumentNode<ExportMatrixAndGapsQuery, ExportMatrixAndGapsQueryVariables>;
+export const ImportCompetenciesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ImportCompetencies"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CompetencyImportInput"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"importCompetencies"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applied"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"rowCount"}},{"kind":"Field","name":{"kind":"Name","value":"categoriesParsed"}},{"kind":"Field","name":{"kind":"Name","value":"competenciesParsed"}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"row"}},{"kind":"Field","name":{"kind":"Name","value":"field"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]}}]} as unknown as DocumentNode<ImportCompetenciesMutation, ImportCompetenciesMutationVariables>;
+export const LevelScalesDetailedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LevelScalesDetailed"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"levelScales"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"isDefault"}},{"kind":"Field","name":{"kind":"Name","value":"levels"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"value"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}},{"kind":"Field","name":{"kind":"Name","value":"dimensionDescriptors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"levelValue"}},{"kind":"Field","name":{"kind":"Name","value":"dimension"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]} as unknown as DocumentNode<LevelScalesDetailedQuery, LevelScalesDetailedQueryVariables>;
+export const ScoringRulesListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ScoringRulesList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scoringRules"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"isDefault"}},{"kind":"Field","name":{"kind":"Name","value":"confidenceThreshold"}}]}}]}}]} as unknown as DocumentNode<ScoringRulesListQuery, ScoringRulesListQueryVariables>;
+export const SetDefaultScoringRuleDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetDefaultScoringRule"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setDefaultScoringRule"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"isDefault"}},{"kind":"Field","name":{"kind":"Name","value":"confidenceThreshold"}}]}}]}}]} as unknown as DocumentNode<SetDefaultScoringRuleMutation, SetDefaultScoringRuleMutationVariables>;
 export const MvpSliceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"MvpSlice"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dashboard"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activeCycleName"}},{"kind":"Field","name":{"kind":"Name","value":"ontologyDomains"}},{"kind":"Field","name":{"kind":"Name","value":"competencies"}},{"kind":"Field","name":{"kind":"Name","value":"matrixRequirements"}},{"kind":"Field","name":{"kind":"Name","value":"assessmentCoveragePercent"}},{"kind":"Field","name":{"kind":"Name","value":"criticalGaps"}}]}},{"kind":"Field","name":{"kind":"Name","value":"organization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"ontology"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"categories"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"categoryType"}},{"kind":"Field","name":{"kind":"Name","value":"sourceKind"}},{"kind":"Field","name":{"kind":"Name","value":"competencies"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"roleProfile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"StringValue","value":"profile-backend-go-senior","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"role"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"family"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"grade"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"tasks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"expectedOutcome"}},{"kind":"Field","name":{"kind":"Name","value":"criticality"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"matrix"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"StringValue","value":"matrix-backend-go-senior","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"activeRevision"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"requirements"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"targetLevel"}},{"kind":"Field","name":{"kind":"Name","value":"normalizedWeight"}},{"kind":"Field","name":{"kind":"Name","value":"criticality"}},{"kind":"Field","name":{"kind":"Name","value":"neededOnEntry"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"assessment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"StringValue","value":"assessment-alexey-backend-go-senior","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"person"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"source"}},{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"confidence"}},{"kind":"Field","name":{"kind":"Name","value":"verificationStatus"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"gaps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"targetLevel"}},{"kind":"Field","name":{"kind":"Name","value":"currentLevel"}},{"kind":"Field","name":{"kind":"Name","value":"gap"}},{"kind":"Field","name":{"kind":"Name","value":"weightedGap"}},{"kind":"Field","name":{"kind":"Name","value":"criticality"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"developmentPlan"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assessmentId"},"value":{"kind":"StringValue","value":"assessment-alexey-backend-go-senior","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"gap"}},{"kind":"Field","name":{"kind":"Name","value":"dueDate"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"behavioralIndicators"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"level"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<MvpSliceQuery, MvpSliceQueryVariables>;
 export const PeopleAssignmentsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PeopleAssignments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentActor"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"role"}}]}},{"kind":"Field","name":{"kind":"Name","value":"person"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"currentAssignment"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveFrom"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveTo"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"manager"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}}]}},{"kind":"Field","name":{"kind":"Name","value":"roleProfile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"orgUnits"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}},{"kind":"Field","name":{"kind":"Name","value":"people"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"currentAssignment"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveFrom"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"manager"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}}]}},{"kind":"Field","name":{"kind":"Name","value":"roleProfile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"calibrationSessions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"decisions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"originalLevel"}},{"kind":"Field","name":{"kind":"Name","value":"calibratedLevel"}},{"kind":"Field","name":{"kind":"Name","value":"diff"}},{"kind":"Field","name":{"kind":"Name","value":"reason"}},{"kind":"Field","name":{"kind":"Name","value":"score"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"competency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"levelScales"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"isDefault"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"levels"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"value"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}},{"kind":"Field","name":{"kind":"Name","value":"dimensionDescriptors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"levelValue"}},{"kind":"Field","name":{"kind":"Name","value":"dimension"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scoringRules"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"confidenceThreshold"}},{"kind":"Field","name":{"kind":"Name","value":"isDefault"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}},{"kind":"Field","name":{"kind":"Name","value":"organizationGapSummary"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"assessedPeople"}},{"kind":"Field","name":{"kind":"Name","value":"totalPeople"}},{"kind":"Field","name":{"kind":"Name","value":"coveragePercent"}},{"kind":"Field","name":{"kind":"Name","value":"criticalGapCount"}},{"kind":"Field","name":{"kind":"Name","value":"byCompetency"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"competencyId"}},{"kind":"Field","name":{"kind":"Name","value":"competencyName"}},{"kind":"Field","name":{"kind":"Name","value":"criticality"}},{"kind":"Field","name":{"kind":"Name","value":"assessedPeople"}},{"kind":"Field","name":{"kind":"Name","value":"totalGap"}},{"kind":"Field","name":{"kind":"Name","value":"avgGap"}},{"kind":"Field","name":{"kind":"Name","value":"isCritical"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"auditEvents"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"20"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"action"}},{"kind":"Field","name":{"kind":"Name","value":"entityType"}},{"kind":"Field","name":{"kind":"Name","value":"entityId"}},{"kind":"Field","name":{"kind":"Name","value":"summary"}},{"kind":"Field","name":{"kind":"Name","value":"actorUserId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<PeopleAssignmentsQuery, PeopleAssignmentsQueryVariables>;
+export const DashboardSummaryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"DashboardSummary"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dashboard"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activeCycleName"}},{"kind":"Field","name":{"kind":"Name","value":"competencies"}},{"kind":"Field","name":{"kind":"Name","value":"criticalGaps"}}]}}]}}]} as unknown as DocumentNode<DashboardSummaryQuery, DashboardSummaryQueryVariables>;
+export const CurrentActorDetailedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"CurrentActorDetailed"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentActor"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"person"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"person"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}}]}}]}}]}}]} as unknown as DocumentNode<CurrentActorDetailedQuery, CurrentActorDetailedQueryVariables>;
+export const CurrentActorRoleDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"CurrentActorRole"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentActor"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"role"}}]}}]}}]}}]} as unknown as DocumentNode<CurrentActorRoleQuery, CurrentActorRoleQueryVariables>;
+export const OrgUnitsListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OrgUnitsList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"orgUnits"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}}]}}]}}]} as unknown as DocumentNode<OrgUnitsListQuery, OrgUnitsListQueryVariables>;
+export const PeopleListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PeopleList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"people"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"currentAssignment"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"roleProfile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]} as unknown as DocumentNode<PeopleListQuery, PeopleListQueryVariables>;
+export const PersonByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PersonById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"person"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}}]}}]} as unknown as DocumentNode<PersonByIdQuery, PersonByIdQueryVariables>;
+export const CurrentAssignmentForPersonDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"CurrentAssignmentForPerson"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"personId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentAssignment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"personId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"personId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveFrom"}},{"kind":"Field","name":{"kind":"Name","value":"orgUnit"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"manager"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}}]}},{"kind":"Field","name":{"kind":"Name","value":"roleProfile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<CurrentAssignmentForPersonQuery, CurrentAssignmentForPersonQueryVariables>;
+export const DirectReportsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"DirectReports"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"managerPersonId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"directReports"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"managerPersonId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"managerPersonId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"person"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}}]}}]}}]}}]} as unknown as DocumentNode<DirectReportsQuery, DirectReportsQueryVariables>;
+export const CreatePersonDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreatePerson"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreatePersonInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createPerson"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<CreatePersonMutation, CreatePersonMutationVariables>;
+export const ArchiveAssignmentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ArchiveAssignment"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archiveAssignment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<ArchiveAssignmentMutation, ArchiveAssignmentMutationVariables>;

@@ -1,0 +1,20 @@
+query CalibrationSessionsDetailed {
+  calibrationSessions {
+    id
+    name
+    status
+    decisions {
+      id
+      originalLevel
+      calibratedLevel
+      diff
+      reason
+      score {
+        id
+        competency {
+          name
+        }
+      }
+    }
+  }
+}

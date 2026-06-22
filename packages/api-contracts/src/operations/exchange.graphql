@@ -1,0 +1,28 @@
+query ExportMatrixAndGaps($matrixRevisionId: ID!, $assessmentId: ID!) {
+  exportMatrixRequirements(matrixRevisionId: $matrixRevisionId) {
+    competencyCode
+    competencyName
+    targetLevel
+    criticality
+  }
+  exportGapSummary(assessmentId: $assessmentId) {
+    competencyCode
+    gap
+    weightedGap
+  }
+}
+
+mutation ImportCompetencies($input: [CompetencyImportInput!]!) {
+  importCompetencies(input: $input) {
+    applied
+    valid
+    rowCount
+    categoriesParsed
+    competenciesParsed
+    errors {
+      row
+      field
+      message
+    }
+  }
+}

@@ -1,0 +1,29 @@
+query AuditEventsRecent($limit: Int = 20) {
+  auditEvents(limit: $limit) {
+    action
+    entityType
+    entityId
+    actorUserId
+    createdAt
+  }
+}
+
+query AuditEventsForEntity($entityType: String!, $entityId: ID!) {
+  auditEvents(entityType: $entityType, entityId: $entityId) {
+    action
+  }
+}
+
+mutation FinalizeAssessment($id: ID!) {
+  finalizeAssessment(id: $id) {
+    id
+    status
+  }
+}
+
+mutation ActivateMatrix($id: ID!) {
+  activateMatrix(id: $id) {
+    id
+    status
+  }
+}

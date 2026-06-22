@@ -1,30 +1,32 @@
 import { schema } from '@comatrix/api-contracts';
 import { applyCompetencyImport, calculateGaps, currentAssignmentForPerson, directReportsOf, managerTeamCoverage, mvpSeed, organizationGapSummary, parseCompetencyImport, recordAuditEvent, toGapExportRows, toMatrixRequirementExportRows, type MvpSeed } from '@comatrix/domain';
 import { createSchema } from 'graphql-yoga';
+import { createGraphQLError } from 'graphql-yoga';
+import { DEFAULT_AUTH_PROVIDER, type AuthProvider, type Session } from './auth.js';
+import { requirePermission } from './rbac.js';
 
 export interface ComatrixContext {
   currentUserId: string;
+  session: Session;
 }
 
 export const DEFAULT_DEV_USER_ID = 'user-alexey';
 
-export function createComatrixContext(initial?: Partial<ComatrixContext>) {
-  return (ctx: { request?: { headers?: { get(name: string): string | null } } }): ComatrixContext => ({
-    currentUserId:
-      initial?.currentUserId ??
-      ctx.request?.headers?.get('x-comatrix-user-id') ??
-      DEFAULT_DEV_USER_ID,
-  });
+export function createComatrixContext(provider: AuthProvider = DEFAULT_AUTH_PROVIDER, initial?: { session: Session }) {
+  return (ctx: { request?: { headers?: { get(name: string): string | null } } }): ComatrixContext => {
+    if (initial?.session) {
+      return { currentUserId: initial.session.userId, session: initial.session };
+    }
+    const request = ctx.request ?? { headers: { get: () => null as string | null } };
+    const session = provider.resolveSession(request, mvpSeed.users);
+    if (!session) {
+      throw new Error('Unauthenticated: no session resolved');
+    }
+    return { currentUserId: session.userId, session };
+  };
 }
 
-class ForbiddenError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ForbiddenError';
-  }
-}
-
-export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
+export function createExecutableSchema(seed: MvpSeed = mvpSeed, provider: AuthProvider = DEFAULT_AUTH_PROVIDER) {
   function competencyById(id: string) {
     const competency = seed.competencies.find((item) => item.id === id);
     if (!competency) {
@@ -66,18 +68,16 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
   }
 
   function actorOrgId(ctx: ComatrixContext): string {
-    const user = userById(ctx.currentUserId ?? DEFAULT_DEV_USER_ID);
-    return user.organizationId;
+    return ctx.session.organizationId;
   }
 
   function auditActor(ctx: ComatrixContext) {
-    const user = userById(ctx.currentUserId ?? DEFAULT_DEV_USER_ID);
-    return { userId: user.id, personId: user.personId, organizationId: user.organizationId };
+    return { userId: ctx.session.userId, personId: ctx.session.personId, organizationId: ctx.session.organizationId };
   }
 
   function requireSameOrg(ctx: ComatrixContext, recordOrgId: string) {
     if (actorOrgId(ctx) !== recordOrgId) {
-      throw new ForbiddenError('Cross-organization access is not allowed');
+      throw createGraphQLError('Cross-organization access is not allowed', { extensions: { code: 'FORBIDDEN' } });
     }
   }
 
@@ -144,6 +144,7 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           return seed.scoringRules.filter((rule) => rule.organizationId === orgId);
         },
         managerDashboard: (_parent, args: { managerPersonId: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'analytics.read');
           const manager = findPerson(args.managerPersonId);
           if (!manager) {
             return null;
@@ -151,7 +152,10 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           requireSameOrg(ctx, manager.organizationId);
           return { managerPersonId: manager.id, reports: managerTeamCoverage(seed, args.managerPersonId) };
         },
-        organizationGapSummary: (_parent, _args, ctx: ComatrixContext) => organizationGapSummary(seed),
+        organizationGapSummary: (_parent, _args, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'analytics.read');
+          return organizationGapSummary(seed);
+        },
         exportMatrixRequirements: (_parent, args: { matrixRevisionId: string }, ctx: ComatrixContext) => {
           const revision = seed.matrixRevisions.find((item) => item.id === args.matrixRevisionId);
           if (!revision) {
@@ -189,6 +193,7 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
       },
       Mutation: {
         createPerson: (_parent, args: { input: { fullName: string; email: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'person.write');
           const organizationId = actorOrgId(ctx);
           const person = {
             id: `person-${args.input.email.toLowerCase()}`,
@@ -219,6 +224,7 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           },
           ctx: ComatrixContext,
         ) => {
+          requirePermission(ctx.session, 'assignment.write');
           const person = findPerson(args.input.personId);
           if (!person) {
             throw new Error(`Unknown person ${args.input.personId}`);
@@ -242,6 +248,7 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           return assignment;
         },
         archiveAssignment: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'assignment.write');
           const assignment = seed.assignments.find((item) => item.id === args.id);
           if (!assignment) {
             throw new Error(`Unknown assignment ${args.id}`);
@@ -259,6 +266,7 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           return assignment;
         },
         setDefaultScoringRule: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
           const rule = seed.scoringRules.find((item) => item.id === args.id);
           if (!rule) {
             throw new Error(`Unknown scoring rule ${args.id}`);
@@ -281,6 +289,7 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           args: { input: Array<{ category: string; categoryType?: string | null; code: string; name: string; description?: string | null; tags?: string[] | null }> },
           ctx: ComatrixContext,
         ) => {
+          requirePermission(ctx.session, 'methodology.write');
           const report = parseCompetencyImport(
             args.input.map((row) => ({
               category: row.category,
@@ -311,6 +320,7 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           };
         },
         finalizeAssessment: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'assessment.finalize');
           const assessment = assessmentById(args.id);
           if (!assessment) {
             throw new Error(`Unknown assessment ${args.id}`);
@@ -328,6 +338,7 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           return assessment;
         },
         activateMatrix: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'matrix.activate');
           const matrix = matrixById(args.id);
           if (!matrix) {
             throw new Error(`Unknown matrix ${args.id}`);

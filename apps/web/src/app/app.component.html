@@ -32,11 +32,18 @@
         <h1>{{ data()?.roleProfile?.name ?? 'Backend Go Engineer / Senior' }}</h1>
       </div>
       <div class="topbar-actions">
+        @if (actor(); as actorVm) {
+          <z-badge zType="secondary" zShape="pill">{{ actorVm.user.role }}</z-badge>
+          <select class="actor-switch" [value]="activeUserId()" (change)="switchUser($any($event.target).value)">
+            @for (persona of personas; track persona.id) {
+              <option [value]="persona.id">{{ persona.label }}</option>
+            }
+          </select>
+        }
         @if (actorAssignment(); as assignment) {
           <z-badge zType="secondary" zShape="pill">{{ assignment.orgUnit.name }}</z-badge>
           <z-badge zType="outline" zShape="pill">{{ assignment.roleProfile.name }}</z-badge>
         }
-        <z-badge zType="secondary" zShape="pill">GraphQL-first</z-badge>
         <z-badge zType="outline" zShape="pill">{{ orgUnitCount() }} org units</z-badge>
       </div>
     </header>

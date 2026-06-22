@@ -3,16 +3,29 @@ documents: ./src/operations/**/*.graphql
 generates:
   ./src/generated/graphql.ts:
     plugins:
-      - typescript
       - typescript-operations
       - typed-document-node
     config:
       immutableTypes: true
-      avoidOptionals: true
+      avoidOptionals:
+        field: true
+        inputValue: false
+        object: true
       maybeValue: T | null
+      preResolveTypes: true
       scalars:
-        ID: string
-        String: string
-        Int: number
-        Float: number
-        Boolean: boolean
+        ID:
+          input: string
+          output: string
+        String:
+          input: string
+          output: string
+        Int:
+          input: number
+          output: number
+        Float:
+          input: number
+          output: number
+        Boolean:
+          input: boolean
+          output: boolean

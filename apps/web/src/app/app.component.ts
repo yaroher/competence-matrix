@@ -1,7 +1,7 @@
 import { DecimalPipe, NgClass } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ApiService, GapVm, MatrixRequirementVm, PeopleAssignmentsVm, ScoreVm } from './api.service';
+import { ApiService, DEV_PERSONAS, GapVm, MatrixRequirementVm, PeopleAssignmentsVm, ScoreVm, activeUserId } from './api.service';
 import { ZardBadgeComponent } from './shared/components/badge';
 import { ZardButtonComponent } from './shared/components/button';
 import { ZardCardComponent } from './shared/components/card';
@@ -56,6 +56,14 @@ export class AppComponent {
   readonly defaultScoringRule = computed(() => this.scoringRules().find((rule) => rule.isDefault) ?? null);
   readonly orgGapSummary = computed(() => this.people()?.organizationGapSummary ?? null);
   readonly auditEvents = computed(() => this.people()?.auditEvents ?? []);
+  readonly actor = computed(() => this.people()?.currentActor ?? null);
+  readonly personas = DEV_PERSONAS;
+  readonly activeUserId = activeUserId;
+
+  switchUser(id: string) {
+    this.api.setActiveUser(id);
+    location.reload();
+  }
   readonly selectedAdminPersonId = signal<string | null>(null);
   readonly selectedAdminPerson = computed(() => {
     const id = this.selectedAdminPersonId();

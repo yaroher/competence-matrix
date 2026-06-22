@@ -1,0 +1,108 @@
+query DashboardSummary {
+  dashboard {
+    activeCycleName
+    competencies
+    criticalGaps
+  }
+}
+
+query CurrentActorDetailed {
+  currentActor {
+    user {
+      id
+      email
+      role
+      person {
+        id
+        fullName
+      }
+    }
+    person {
+      id
+      fullName
+    }
+  }
+}
+
+query CurrentActorRole {
+  currentActor {
+    user {
+      id
+      role
+    }
+  }
+}
+
+query OrgUnitsList {
+  orgUnits {
+    id
+    name
+    type
+    parentId
+  }
+}
+
+query PeopleList {
+  people {
+    id
+    fullName
+    currentAssignment {
+      roleProfile {
+        name
+      }
+    }
+  }
+}
+
+query PersonById($id: ID!) {
+  person(id: $id) {
+    id
+    fullName
+    email
+  }
+}
+
+query CurrentAssignmentForPerson($personId: ID!) {
+  currentAssignment(personId: $personId) {
+    id
+    status
+    effectiveFrom
+    orgUnit {
+      id
+      name
+    }
+    manager {
+      id
+      fullName
+    }
+    roleProfile {
+      id
+      name
+    }
+  }
+}
+
+query DirectReports($managerPersonId: ID!) {
+  directReports(managerPersonId: $managerPersonId) {
+    person {
+      id
+      fullName
+    }
+  }
+}
+
+mutation CreatePerson($input: CreatePersonInput!) {
+  createPerson(input: $input) {
+    id
+    fullName
+    email
+    status
+  }
+}
+
+mutation ArchiveAssignment($id: ID!) {
+  archiveAssignment(id: $id) {
+    id
+    status
+  }
+}

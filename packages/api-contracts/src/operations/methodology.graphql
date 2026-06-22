@@ -1,0 +1,34 @@
+query LevelScalesDetailed {
+  levelScales {
+    id
+    name
+    isDefault
+    levels {
+      value
+      title
+    }
+    dimensionDescriptors {
+      levelValue
+      dimension
+      description
+    }
+  }
+}
+
+query ScoringRulesList {
+  scoringRules {
+    id
+    name
+    isDefault
+    confidenceThreshold
+  }
+}
+
+mutation SetDefaultScoringRule($id: ID!) {
+  setDefaultScoringRule(id: $id) {
+    id
+    name
+    isDefault
+    confidenceThreshold
+  }
+}

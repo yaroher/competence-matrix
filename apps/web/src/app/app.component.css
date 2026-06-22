@@ -443,3 +443,11 @@ meter {
   font-size: 14px;
   color: var(--muted, #64748b);
 }
+
+.actor-switch {
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: #fff;
+  font-size: 12px;
+}

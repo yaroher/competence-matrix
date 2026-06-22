@@ -1,0 +1,33 @@
+query ManagerDashboard($managerPersonId: ID!) {
+  managerDashboard(managerPersonId: $managerPersonId) {
+    managerPersonId
+    reports {
+      personId
+      fullName
+      hasAssessment
+      gapCount
+      criticalGapCount
+    }
+  }
+}
+
+query OrganizationGapSummary {
+  organizationGapSummary {
+    assessedPeople
+    totalPeople
+    coveragePercent
+    criticalGapCount
+    byCompetency {
+      competencyName
+      criticality
+      avgGap
+      isCritical
+    }
+  }
+}
+
+query OrganizationCoverage {
+  organizationGapSummary {
+    coveragePercent
+  }
+}

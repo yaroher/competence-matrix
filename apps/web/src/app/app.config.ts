@@ -1,7 +1,8 @@
 import { ApplicationConfig } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { actorInterceptor } from './api.service';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideHttpClient()],
+  providers: [provideHttpClient(withInterceptors([actorInterceptor]))],
 };
 

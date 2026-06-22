@@ -1,5 +1,6 @@
+import { HttpInterceptorFn } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { MvpSliceDocument, PeopleAssignmentsDocument, type MvpSliceQuery, type PeopleAssignmentsQuery } from '@comatrix/api-contracts';
 import { print } from 'graphql';
 import { map, retry, timer } from 'rxjs';
@@ -25,9 +26,28 @@ interface GraphQlResponse<T> {
 const MVP_QUERY = print(MvpSliceDocument);
 const PEOPLE_ASSIGNMENTS_QUERY = print(PeopleAssignmentsDocument);
 
+export const DEV_PERSONAS = [
+  { id: 'user-alexey', label: 'Alexey · employee' },
+  { id: 'user-marina', label: 'Marina · manager' },
+  { id: 'user-daria', label: 'Daria · hr' },
+  { id: 'user-igor', label: 'Igor · expert' },
+  { id: 'user-elena', label: 'Elena · methodology_admin' },
+] as const;
+
+export const activeUserId = signal<string>('user-alexey');
+
+export const actorInterceptor: HttpInterceptorFn = (req, next) => {
+  const authed = req.clone({ setHeaders: { 'x-comatrix-user-id': activeUserId() } });
+  return next(authed);
+};
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
+
+  setActiveUser(id: string) {
+    activeUserId.set(id);
+  }
 
   loadMvpData() {
     return this.http
