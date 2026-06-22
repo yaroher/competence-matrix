@@ -16,6 +16,8 @@ export const schema = /* GraphQL */ `
     calibrationSessions: [CalibrationSession!]!
     levelScales: [LevelScale!]!
     scoringRules: [ScoringRule!]!
+    managerDashboard(managerPersonId: ID!): ManagerDashboard
+    organizationGapSummary: OrganizationGapSummary!
   }
 
   type Mutation {
@@ -140,6 +142,38 @@ export const schema = /* GraphQL */ `
     confidenceThreshold: Float!
     isDefault: Boolean!
     status: String!
+  }
+
+  type ManagerDashboard {
+    managerPersonId: ID!
+    reports: [ManagerReportCoverage!]!
+  }
+
+  type ManagerReportCoverage {
+    personId: ID!
+    fullName: String!
+    hasAssessment: Boolean!
+    assessmentStatus: String
+    gapCount: Int!
+    criticalGapCount: Int!
+  }
+
+  type OrganizationGapSummary {
+    assessedPeople: Int!
+    totalPeople: Int!
+    coveragePercent: Int!
+    criticalGapCount: Int!
+    byCompetency: [CompetencyGapSummary!]!
+  }
+
+  type CompetencyGapSummary {
+    competencyId: ID!
+    competencyName: String!
+    criticality: String!
+    assessedPeople: Int!
+    totalGap: Int!
+    avgGap: Float!
+    isCritical: Boolean!
   }
 
   type RoleProfile {

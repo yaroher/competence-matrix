@@ -1,5 +1,5 @@
 import { schema } from '@comatrix/api-contracts';
-import { calculateGaps, currentAssignmentForPerson, directReportsOf, mvpSeed, type MvpSeed } from '@comatrix/domain';
+import { calculateGaps, currentAssignmentForPerson, directReportsOf, managerTeamCoverage, mvpSeed, organizationGapSummary, type MvpSeed } from '@comatrix/domain';
 import { createSchema } from 'graphql-yoga';
 
 export interface ComatrixContext {
@@ -138,6 +138,15 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           const orgId = actorOrgId(ctx);
           return seed.scoringRules.filter((rule) => rule.organizationId === orgId);
         },
+        managerDashboard: (_parent, args: { managerPersonId: string }, ctx: ComatrixContext) => {
+          const manager = findPerson(args.managerPersonId);
+          if (!manager) {
+            return null;
+          }
+          requireSameOrg(ctx, manager.organizationId);
+          return { managerPersonId: manager.id, reports: managerTeamCoverage(seed, args.managerPersonId) };
+        },
+        organizationGapSummary: (_parent, _args, ctx: ComatrixContext) => organizationGapSummary(seed),
       },
       Mutation: {
         createPerson: (_parent, args: { input: { fullName: string; email: string } }, ctx: ComatrixContext) => {

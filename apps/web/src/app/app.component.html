@@ -41,7 +41,55 @@
       </div>
     </header>
 
-    @if (selectedNav() === 'Methodology') {
+    @if (selectedNav() === 'Analytics') {
+      <section class="admin-grid" aria-label="Team and organization analytics">
+        @if (orgGapSummary(); as summary) {
+          <article class="panel admin-detail-panel" style="grid-column: 1 / -1">
+            <div class="panel-header">
+              <div>
+                <span class="eyebrow">Organization analytics</span>
+                <h2>Coverage and priority gaps</h2>
+              </div>
+              <z-badge zType="secondary" zShape="pill">{{ summary.coveragePercent }}% covered</z-badge>
+            </div>
+
+            <div class="metrics" aria-label="Coverage metrics">
+              <article><span>Assessed</span><strong>{{ summary.assessedPeople }}/{{ summary.totalPeople }}</strong></article>
+              <article><span>Critical gaps</span><strong>{{ summary.criticalGapCount }}</strong></article>
+            </div>
+
+            @if (summary.byCompetency.length) {
+              <table z-table zType="bordered" zSize="compact" class="calibration-table">
+                <thead z-table-header>
+                  <tr z-table-row>
+                    <th z-table-head>Competency</th>
+                    <th z-table-head>Criticality</th>
+                    <th z-table-head>Assessed</th>
+                    <th z-table-head>Avg gap</th>
+                    <th z-table-head>Total gap</th>
+                  </tr>
+                </thead>
+                <tbody z-table-body>
+                  @for (row of summary.byCompetency; track row.competencyId) {
+                    <tr z-table-row>
+                      <td z-table-cell>{{ row.competencyName }}</td>
+                      <td z-table-cell>{{ row.criticality }}</td>
+                      <td z-table-cell>{{ row.assessedPeople }}</td>
+                      <td z-table-cell>{{ row.avgGap }}</td>
+                      <td z-table-cell>{{ row.totalGap }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="admin-muted">No assessed competencies yet.</p>
+            }
+          </article>
+        } @else {
+          <article class="panel admin-empty"><strong>Loading analytics</strong><span>Waiting for GraphQL API on /graphql</span></article>
+        }
+      </section>
+    } @else if (selectedNav() === 'Methodology') {
       <section class="admin-grid" aria-label="Methodology configuration">
         @if (people(); as pa) {
           @if (levelScales().length) {

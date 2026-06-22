@@ -1,13 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach } from 'vitest';
 import { createYoga } from 'graphql-yoga';
+import { mvpSeed } from '@comatrix/domain';
 import { createComatrixContext, createExecutableSchema } from './resolvers.js';
 
-function yoga() {
-  return createYoga({ schema: createExecutableSchema(), context: createComatrixContext() });
-}
+let instance: ReturnType<typeof createYoga>;
+
+beforeEach(() => {
+  instance = createYoga({ schema: createExecutableSchema(structuredClone(mvpSeed)), context: createComatrixContext() });
+});
 
 async function run(query: string, headers: Record<string, string> = {}) {
-  const response = await yoga().fetch('http://localhost/graphql', {
+  const response = await instance.fetch('http://localhost/graphql', {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...headers },
     body: JSON.stringify({ query }),
@@ -163,5 +166,31 @@ describe('methodology', () => {
     );
     expect(create.errors).toBeUndefined();
     expect(create.data.setDefaultScoringRule.isDefault).toBe(true);
+  });
+});
+
+describe('analytics', () => {
+  it('returns the manager dashboard for the seeded manager', async () => {
+    const json = await run(
+      '{ managerDashboard(managerPersonId: "person-marina") { managerPersonId reports { personId fullName hasAssessment gapCount criticalGapCount } } }',
+    );
+
+    expect(json.errors).toBeUndefined();
+    const reports = json.data.managerDashboard.reports;
+    expect(reports.map((r: { personId: string }) => r.personId).sort()).toEqual(['person-alexey', 'person-expert']);
+    const alexey = reports.find((r: { personId: string }) => r.personId === 'person-alexey');
+    expect(alexey.hasAssessment).toBe(true);
+    expect(alexey.gapCount).toBeGreaterThan(0);
+  });
+
+  it('returns the organization gap summary with coverage and critical gaps', async () => {
+    const json = await run(
+      '{ organizationGapSummary { assessedPeople totalPeople coveragePercent criticalGapCount byCompetency { competencyName criticality avgGap isCritical } } }',
+    );
+
+    expect(json.errors).toBeUndefined();
+    const summary = json.data.organizationGapSummary;
+    expect(summary.coveragePercent).toBeGreaterThan(0);
+    expect(summary.byCompetency.length).toBeGreaterThan(0);
   });
 });

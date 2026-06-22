@@ -54,6 +54,7 @@ export class AppComponent {
   readonly levelScales = computed(() => this.people()?.levelScales ?? []);
   readonly scoringRules = computed(() => this.people()?.scoringRules ?? []);
   readonly defaultScoringRule = computed(() => this.scoringRules().find((rule) => rule.isDefault) ?? null);
+  readonly orgGapSummary = computed(() => this.people()?.organizationGapSummary ?? null);
   readonly selectedAdminPersonId = signal<string | null>(null);
   readonly selectedAdminPerson = computed(() => {
     const id = this.selectedAdminPersonId();
