@@ -41,7 +41,77 @@
       </div>
     </header>
 
-    @if (selectedNav() === 'Calibration') {
+    @if (selectedNav() === 'Methodology') {
+      <section class="admin-grid" aria-label="Methodology configuration">
+        @if (people(); as pa) {
+          @if (levelScales().length) {
+            @for (scale of levelScales(); track scale.id) {
+              <article class="panel admin-detail-panel" style="grid-column: 1 / -1">
+                <div class="panel-header">
+                  <div>
+                    <span class="eyebrow">Level scale</span>
+                    <h2>{{ scale.name }}</h2>
+                  </div>
+                  @if (scale.isDefault) {
+                    <z-badge zType="secondary" zShape="pill">default</z-badge>
+                  }
+                </div>
+
+                <div class="methodology-levels">
+                  @for (level of scale.levels; track level.value) {
+                    <article class="methodology-level">
+                      <strong>L{{ level.value }} · {{ level.title }}</strong>
+                      <p>{{ level.description }}</p>
+                    </article>
+                  }
+                </div>
+
+                @if (scale.dimensionDescriptors.length) {
+                  <h3 class="methodology-subhead">Observable dimensions</h3>
+                  <table z-table zType="bordered" zSize="compact" class="calibration-table">
+                    <thead z-table-header>
+                      <tr z-table-row>
+                        <th z-table-head>Level</th>
+                        <th z-table-head>Dimension</th>
+                        <th z-table-head>What it looks like</th>
+                      </tr>
+                    </thead>
+                    <tbody z-table-body>
+                      @for (descriptor of scale.dimensionDescriptors; track descriptor.id) {
+                        <tr z-table-row>
+                          <td z-table-cell>L{{ descriptor.levelValue }}</td>
+                          <td z-table-cell>{{ descriptor.dimension }}</td>
+                          <td z-table-cell>{{ descriptor.description }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                }
+              </article>
+            }
+          } @else {
+            <article class="panel admin-empty"><strong>No level scales</strong><span>Configure a level scale to enable assessment forms.</span></article>
+          }
+
+          <article class="panel admin-detail-panel" style="grid-column: 1 / -1">
+            <div class="panel-header">
+              <div>
+                <span class="eyebrow">Scoring rule</span>
+                <h2>{{ defaultScoringRule()?.name ?? 'No default scoring rule' }}</h2>
+              </div>
+            </div>
+            <dl class="assignment-grid">
+              <dt>Confidence threshold</dt>
+              <dd>{{ defaultScoringRule()?.confidenceThreshold ?? '—' }}</dd>
+              <dt>Status</dt>
+              <dd>{{ defaultScoringRule()?.status ?? '—' }}</dd>
+            </dl>
+          </article>
+        } @else {
+          <article class="panel admin-empty"><strong>Loading methodology</strong><span>Waiting for GraphQL API on /graphql</span></article>
+        }
+      </section>
+    } @else if (selectedNav() === 'Calibration') {
       <section class="admin-grid" aria-label="Calibration sessions">
         @if (people(); as pa) {
           @if (calibrationSessions().length) {

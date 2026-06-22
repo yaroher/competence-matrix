@@ -130,6 +130,14 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           const orgId = actorOrgId(ctx);
           return seed.calibrationSessions.filter((session) => session.organizationId === orgId);
         },
+        levelScales: (_parent, _args, ctx: ComatrixContext) => {
+          const orgId = actorOrgId(ctx);
+          return seed.levelScales.filter((scale) => scale.organizationId === orgId);
+        },
+        scoringRules: (_parent, _args, ctx: ComatrixContext) => {
+          const orgId = actorOrgId(ctx);
+          return seed.scoringRules.filter((rule) => rule.organizationId === orgId);
+        },
       },
       Mutation: {
         createPerson: (_parent, args: { input: { fullName: string; email: string } }, ctx: ComatrixContext) => {
@@ -185,6 +193,19 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           }
           assignment.status = 'archived';
           return assignment;
+        },
+        setDefaultScoringRule: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          const rule = seed.scoringRules.find((item) => item.id === args.id);
+          if (!rule) {
+            throw new Error(`Unknown scoring rule ${args.id}`);
+          }
+          requireSameOrg(ctx, rule.organizationId);
+          for (const item of seed.scoringRules) {
+            if (item.organizationId === rule.organizationId) {
+              item.isDefault = item.id === rule.id;
+            }
+          }
+          return rule;
         },
       },
       CompetencyCategory: {
@@ -271,6 +292,16 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed) {
           }
           return score;
         },
+      },
+      LevelScale: {
+        levels: (scale: { id: string }) =>
+          seed.levels
+            .filter((level) => level.scaleId === scale.id)
+            .sort((a, b) => a.value - b.value),
+        dimensionDescriptors: (scale: { id: string }) =>
+          seed.levelDimensionDescriptors
+            .filter((descriptor) => descriptor.scaleId === scale.id)
+            .sort((a, b) => a.levelValue - b.levelValue || a.dimension.localeCompare(b.dimension)),
       },
     },
   });

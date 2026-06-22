@@ -413,3 +413,33 @@ meter {
 .assignment-grid dd {
   margin: 0;
 }
+
+.methodology-levels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.methodology-level {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.methodology-level strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.methodology-level p {
+  margin: 0;
+  color: var(--muted, #64748b);
+  font-size: 13px;
+}
+
+.methodology-subhead {
+  margin: 8px 0;
+  font-size: 14px;
+  color: var(--muted, #64748b);
+}

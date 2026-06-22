@@ -31,6 +31,14 @@ export const systemRole = pgEnum('system_role', ['employee', 'manager', 'expert'
 export const userStatus = pgEnum('user_status', ['active', 'disabled']);
 export const assignmentStatus = pgEnum('assignment_status', ['active', 'archived']);
 export const calibrationSessionStatus = pgEnum('calibration_session_status', ['open', 'closed']);
+export const levelDimension = pgEnum('level_dimension', [
+  'autonomy',
+  'complexity',
+  'influence',
+  'support',
+  'impact',
+]);
+export const methodologyStatus = pgEnum('methodology_status', ['draft', 'active', 'archived']);
 
 export const organizations = pgTable('organizations', {
   id: text('id').primaryKey(),
@@ -116,9 +124,44 @@ export const roleProfiles = pgTable('role_profiles', {
 
 export const levelDefinitions = pgTable('level_definitions', {
   value: integer('value').primaryKey(),
+  scaleId: text('scale_id').references(() => levelScales.id),
   title: text('title').notNull(),
   description: text('description').notNull(),
 });
+
+export const levelScales = pgTable('level_scales', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull().references(() => organizations.id),
+  name: text('name').notNull(),
+  isDefault: boolean('is_default').notNull().default(false),
+  status: methodologyStatus('status').notNull().default('active'),
+}, (table) => [
+  index('level_scales_organization_idx').on(table.organizationId),
+  uniqueIndex('level_scales_organization_default_uq').on(table.organizationId, table.isDefault),
+]);
+
+export const levelDimensionDescriptors = pgTable('level_dimension_descriptors', {
+  id: text('id').primaryKey(),
+  scaleId: text('scale_id').notNull().references(() => levelScales.id),
+  levelValue: integer('level_value').notNull(),
+  dimension: levelDimension('dimension').notNull(),
+  description: text('description').notNull(),
+}, (table) => [
+  index('level_dimension_descriptors_scale_idx').on(table.scaleId),
+  uniqueIndex('level_dimension_descriptors_scale_level_dim_uq').on(table.scaleId, table.levelValue, table.dimension),
+]);
+
+export const scoringRules = pgTable('scoring_rules', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull().references(() => organizations.id),
+  name: text('name').notNull(),
+  confidenceThreshold: numeric('confidence_threshold', { precision: 3, scale: 2 }).notNull(),
+  isDefault: boolean('is_default').notNull().default(false),
+  status: methodologyStatus('status').notNull().default('active'),
+}, (table) => [
+  index('scoring_rules_organization_idx').on(table.organizationId),
+  uniqueIndex('scoring_rules_organization_default_uq').on(table.organizationId, table.isDefault),
+]);
 
 export const assignments = pgTable('assignments', {
   id: text('id').primaryKey(),

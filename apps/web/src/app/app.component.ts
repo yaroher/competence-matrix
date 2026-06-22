@@ -51,6 +51,9 @@ export class AppComponent {
 
   readonly adminPeople = computed(() => this.people()?.people ?? []);
   readonly calibrationSessions = computed(() => this.people()?.calibrationSessions ?? []);
+  readonly levelScales = computed(() => this.people()?.levelScales ?? []);
+  readonly scoringRules = computed(() => this.people()?.scoringRules ?? []);
+  readonly defaultScoringRule = computed(() => this.scoringRules().find((rule) => rule.isDefault) ?? null);
   readonly selectedAdminPersonId = signal<string | null>(null);
   readonly selectedAdminPerson = computed(() => {
     const id = this.selectedAdminPersonId();
@@ -111,6 +114,7 @@ export class AppComponent {
     'Calibration',
     'Development',
     'Analytics',
+    'Methodology',
     'Admin',
   ];
 

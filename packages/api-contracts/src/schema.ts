@@ -14,12 +14,15 @@ export const schema = /* GraphQL */ `
     assessment(id: ID!): Assessment
     developmentPlan(assessmentId: ID!): DevelopmentPlan
     calibrationSessions: [CalibrationSession!]!
+    levelScales: [LevelScale!]!
+    scoringRules: [ScoringRule!]!
   }
 
   type Mutation {
     createPerson(input: CreatePersonInput!): Person!
     createAssignment(input: CreateAssignmentInput!): Assignment!
     archiveAssignment(id: ID!): Assignment!
+    setDefaultScoringRule(id: ID!): ScoringRule!
   }
 
   input CreatePersonInput {
@@ -113,6 +116,30 @@ export const schema = /* GraphQL */ `
     value: Int!
     title: String!
     description: String!
+  }
+
+  type LevelScale {
+    id: ID!
+    name: String!
+    isDefault: Boolean!
+    status: String!
+    levels: [LevelDefinition!]!
+    dimensionDescriptors: [LevelDimensionDescriptor!]!
+  }
+
+  type LevelDimensionDescriptor {
+    id: ID!
+    levelValue: Int!
+    dimension: String!
+    description: String!
+  }
+
+  type ScoringRule {
+    id: ID!
+    name: String!
+    confidenceThreshold: Float!
+    isDefault: Boolean!
+    status: String!
   }
 
   type RoleProfile {

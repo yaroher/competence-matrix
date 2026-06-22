@@ -109,8 +109,36 @@ export interface CompetencyRelation {
 
 export interface LevelDefinition {
   value: number;
+  scaleId?: Id;
   title: string;
   description: string;
+}
+
+export type LevelDimension = 'autonomy' | 'complexity' | 'influence' | 'support' | 'impact';
+
+export interface LevelScale {
+  id: Id;
+  organizationId: Id;
+  name: string;
+  isDefault: boolean;
+  status: 'draft' | 'active' | 'archived';
+}
+
+export interface LevelDimensionDescriptor {
+  id: Id;
+  scaleId: Id;
+  levelValue: number;
+  dimension: LevelDimension;
+  description: string;
+}
+
+export interface ScoringRule {
+  id: Id;
+  organizationId: Id;
+  name: string;
+  confidenceThreshold: number;
+  isDefault: boolean;
+  status: 'draft' | 'active' | 'archived';
 }
 
 export interface RoleFamily {
@@ -267,6 +295,9 @@ export interface MvpSeed {
   competencies: Competency[];
   relations: CompetencyRelation[];
   levels: LevelDefinition[];
+  levelScales: LevelScale[];
+  levelDimensionDescriptors: LevelDimensionDescriptor[];
+  scoringRules: ScoringRule[];
   roleFamilies: RoleFamily[];
   roles: Role[];
   grades: Grade[];

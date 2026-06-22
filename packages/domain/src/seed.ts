@@ -490,28 +490,64 @@ export const mvpSeed: MvpSeed = {
   levels: [
     {
       value: 1,
+      scaleId: 'scale-standard-5',
       title: 'Aware',
       description: 'Understands basics and works with close support.',
     },
     {
       value: 2,
+      scaleId: 'scale-standard-5',
       title: 'Practicing',
       description: 'Handles routine work independently in familiar contexts.',
     },
     {
       value: 3,
+      scaleId: 'scale-standard-5',
       title: 'Independent',
       description: 'Delivers standard work independently and explains trade-offs.',
     },
     {
       value: 4,
+      scaleId: 'scale-standard-5',
       title: 'Senior',
       description: 'Owns complex work, guides others and prevents recurring risks.',
     },
     {
       value: 5,
+      scaleId: 'scale-standard-5',
       title: 'Principal',
       description: 'Sets direction across teams and influences organizational practice.',
+    },
+  ],
+  levelScales: [
+    {
+      id: 'scale-standard-5',
+      organizationId,
+      name: 'Standard 5-level scale',
+      isDefault: true,
+      status: 'active',
+    },
+  ],
+  levelDimensionDescriptors: [
+    { id: 'dim-3-autonomy', scaleId: 'scale-standard-5', levelValue: 3, dimension: 'autonomy', description: 'Delivers standard tasks without supervision; asks for help on edge cases.' },
+    { id: 'dim-4-autonomy', scaleId: 'scale-standard-5', levelValue: 4, dimension: 'autonomy', description: 'Owns ambiguous problems end-to-end and sets direction for the team.' },
+    { id: 'dim-3-complexity', scaleId: 'scale-standard-5', levelValue: 3, dimension: 'complexity', description: 'Handles moderately complex work with familiar trade-offs.' },
+    { id: 'dim-4-complexity', scaleId: 'scale-standard-5', levelValue: 4, dimension: 'complexity', description: 'Reasons about system-wide complexity and cross-cutting risk.' },
+    { id: 'dim-3-influence', scaleId: 'scale-standard-5', levelValue: 3, dimension: 'influence', description: 'Explains decisions to peers and aligns the immediate team.' },
+    { id: 'dim-4-influence', scaleId: 'scale-standard-5', levelValue: 4, dimension: 'influence', description: 'Influences architecture and practice across teams.' },
+    { id: 'dim-3-support', scaleId: 'scale-standard-5', levelValue: 3, dimension: 'support', description: 'Reviews peers on request and unblocks teammates.' },
+    { id: 'dim-4-support', scaleId: 'scale-standard-5', levelValue: 4, dimension: 'support', description: 'Mentors seniors and raises overall team capability.' },
+    { id: 'dim-3-impact', scaleId: 'scale-standard-5', levelValue: 3, dimension: 'impact', description: 'Delivers reliable outcomes for the team scope.' },
+    { id: 'dim-4-impact', scaleId: 'scale-standard-5', levelValue: 4, dimension: 'impact', description: 'Drives outcomes that matter at the department or product level.' },
+  ],
+  scoringRules: [
+    {
+      id: 'scoring-default',
+      organizationId,
+      name: 'Default scoring rule',
+      confidenceThreshold: 0.7,
+      isDefault: true,
+      status: 'active',
     },
   ],
   roleFamilies: [

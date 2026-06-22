@@ -134,3 +134,34 @@ describe('calibration', () => {
     expect(decision.score.competency.name).toBeTruthy();
   });
 });
+
+describe('methodology', () => {
+  it('exposes a configurable level scale with definitions and dimension descriptors', async () => {
+    const json = await run(
+      '{ levelScales { id name isDefault levels { value title } dimensionDescriptors { levelValue dimension description } } }',
+    );
+
+    expect(json.errors).toBeUndefined();
+    const scales = json.data.levelScales;
+    expect(scales).toHaveLength(1);
+    const scale = scales[0];
+    expect(scale.isDefault).toBe(true);
+    expect(scale.levels.length).toBeGreaterThanOrEqual(5);
+    expect(scale.dimensionDescriptors.length).toBeGreaterThan(0);
+    expect(scale.dimensionDescriptors[0].dimension).toBeTruthy();
+  });
+
+  it('exposes scoring rules and switches the default via mutation', async () => {
+    const list = await run('{ scoringRules { id name isDefault confidenceThreshold } }');
+    expect(list.errors).toBeUndefined();
+    expect(list.data.scoringRules.length).toBeGreaterThanOrEqual(1);
+    const before = list.data.scoringRules.find((r: { isDefault: boolean }) => r.isDefault);
+    expect(before).toBeTruthy();
+
+    const create = await run(
+      'mutation { setDefaultScoringRule(id: "scoring-default") { id name isDefault confidenceThreshold } }',
+    );
+    expect(create.errors).toBeUndefined();
+    expect(create.data.setDefaultScoringRule.isDefault).toBe(true);
+  });
+});

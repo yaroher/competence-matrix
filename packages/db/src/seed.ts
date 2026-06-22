@@ -15,6 +15,8 @@ import {
   developmentPlans,
   grades,
   levelDefinitions,
+  levelDimensionDescriptors,
+  levelScales,
   matrices,
   matrixRequirements,
   matrixRevisions,
@@ -25,6 +27,7 @@ import {
   roleProfiles,
   roleTasks,
   roles,
+  scoringRules,
   taskCompetencyLinks,
   users,
 } from './schema.js';
@@ -41,6 +44,9 @@ async function main() {
     truncate table
       calibration_decisions,
       calibration_sessions,
+      scoring_rules,
+      level_dimension_descriptors,
+      level_scales,
       assessment_scores,
       development_plan_items,
       development_plans,
@@ -67,7 +73,12 @@ async function main() {
   `);
 
   await db.insert(organizations).values(mvpSeed.organization);
+  await db.insert(levelScales).values(mvpSeed.levelScales);
   await db.insert(levelDefinitions).values(mvpSeed.levels);
+  await db.insert(levelDimensionDescriptors).values(mvpSeed.levelDimensionDescriptors);
+  await db.insert(scoringRules).values(
+    mvpSeed.scoringRules.map((rule) => ({ ...rule, confidenceThreshold: String(rule.confidenceThreshold) })),
+  );
   await db.insert(orgUnits).values(mvpSeed.orgUnits);
   await db.insert(people).values(mvpSeed.people);
   await db.insert(users).values(mvpSeed.users);

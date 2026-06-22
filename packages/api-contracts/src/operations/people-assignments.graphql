@@ -80,4 +80,28 @@ query PeopleAssignments {
       }
     }
   }
+  levelScales {
+    id
+    name
+    isDefault
+    status
+    levels {
+      value
+      title
+      description
+    }
+    dimensionDescriptors {
+      id
+      levelValue
+      dimension
+      description
+    }
+  }
+  scoringRules {
+    id
+    name
+    confidenceThreshold
+    isDefault
+    status
+  }
 }
