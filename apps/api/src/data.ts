@@ -209,6 +209,7 @@ export async function loadMvpSeedFromPostgres(connectionString?: string): Promis
         ...unit,
         parentId: unit.parentId ?? undefined,
         type: unit.type as never,
+        status: unit.status as 'active' | 'archived',
       })),
       people: peopleRows.map((person) => ({ ...person, status: person.status as never })),
       users: userRows.map((user): User => ({

@@ -29,6 +29,7 @@ function toOrgUnit(row: OrgUnitRow): OrgUnit {
     parentId: row.parentId ?? undefined,
     type: row.type as OrgUnit['type'],
     name: row.name,
+    status: row.status as OrgUnit['status'],
   };
 }
 

@@ -343,6 +343,7 @@ export const mvpSeed: MvpSeed = {
       organizationId,
       type: 'department',
       name: 'Platform Engineering',
+      status: 'active',
     },
     {
       id: 'unit-backend',
@@ -350,6 +351,7 @@ export const mvpSeed: MvpSeed = {
       parentId: 'unit-platform',
       type: 'team',
       name: 'Backend Platform',
+      status: 'active',
     },
     {
       id: 'unit-sre',
@@ -357,6 +359,7 @@ export const mvpSeed: MvpSeed = {
       parentId: 'unit-platform',
       type: 'team',
       name: 'Site Reliability',
+      status: 'active',
     },
   ],
   people: [

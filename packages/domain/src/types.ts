@@ -20,6 +20,7 @@ export interface OrgUnit {
   parentId?: Id;
   type: 'company' | 'department' | 'team';
   name: string;
+  status: 'active' | 'archived';
 }
 
 export interface Person {

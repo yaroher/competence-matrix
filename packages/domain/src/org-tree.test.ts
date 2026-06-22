@@ -10,6 +10,7 @@ function unit(id: string, parentId: string | undefined, name = id): OrgUnit {
     parentId,
     type: 'team',
     name,
+    status: 'active',
   };
 }
 

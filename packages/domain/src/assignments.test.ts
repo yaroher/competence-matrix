@@ -75,4 +75,24 @@ describe('buildAssignmentSnapshot', () => {
       status: 'active',
     });
   });
+
+  it('preserves every field an assessment depends on (regression guard)', () => {
+    const current = currentAssignmentForPerson(mvpSeed.assignments, 'person-alexey')!;
+    const snapshot = buildAssignmentSnapshot(current);
+
+    const requiredContextKeys: (keyof typeof snapshot)[] = [
+      'personId',
+      'orgUnitId',
+      'managerPersonId',
+      'roleProfileId',
+      'effectiveFrom',
+      'status',
+    ];
+
+    for (const key of requiredContextKeys) {
+      expect(snapshot[key], `snapshot must capture ${String(key)}`).toBeDefined();
+    }
+    expect(snapshot.managerPersonId).toBe('person-marina');
+    expect(snapshot.orgUnitId).toBe('unit-backend');
+  });
 });
