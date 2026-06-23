@@ -728,6 +728,21 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed, provider: AuthPr
           seed.scoringRules.push(rule);
           return rule;
         },
+
+        updateDevelopmentPlanItem: (_parent, args: { input: { id: string; status?: string | null; dueDate?: string | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'assessment.finalize');
+          for (const plan of seed.developmentPlans) {
+            const item = plan.items.find((i) => i.id === args.input.id);
+            if (item) {
+              const person = findPerson(item.ownerPersonId);
+              if (person) requireSameOrg(ctx, person.organizationId);
+              if (args.input.status != null) item.status = args.input.status as never;
+              if (args.input.dueDate != null) item.dueDate = args.input.dueDate;
+              return item;
+            }
+          }
+          throw new Error(`Unknown development plan item ${args.input.id}`);
+        },
       },
       CompetencyCategory: {
         competencies: (category: { id: string }) =>

@@ -6,6 +6,10 @@ import { CompetenciesComponent } from './sections/competencies.component';
 import { RolesComponent } from './sections/roles.component';
 import { MatricesComponent } from './sections/matrices.component';
 import { AssessmentsComponent } from './sections/assessments.component';
+import { DevelopmentComponent } from './sections/development.component';
+import { CalibrationSectionComponent } from './sections/calibration.component';
+import { MethodologySectionComponent } from './sections/methodology.component';
+import { AdminSectionComponent } from './sections/admin.component';
 import { ZardBadgeComponent } from './shared/components/badge';
 import { ZardButtonComponent } from './shared/components/button';
 import { ZardCardComponent } from './shared/components/card';
@@ -44,6 +48,10 @@ interface OrgUnitNode extends OrgUnit {
     RolesComponent,
     MatricesComponent,
     AssessmentsComponent,
+    DevelopmentComponent,
+    CalibrationSectionComponent,
+    MethodologySectionComponent,
+    AdminSectionComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

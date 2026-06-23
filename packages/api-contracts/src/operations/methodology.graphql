@@ -32,3 +32,13 @@ mutation SetDefaultScoringRule($id: ID!) {
     confidenceThreshold
   }
 }
+
+mutation CreateLevelScale($input: NameInput!) {
+  createLevelScale(input: $input) { id name }
+}
+mutation CreateScoringRuleOp($input: ScoringRuleInput!) {
+  createScoringRule(input: $input) { id name confidenceThreshold }
+}
+mutation UpsertLevelDimensionDescriptor($input: LevelDimensionDescriptorInput!) {
+  upsertLevelDimensionDescriptor(input: $input) { id levelValue dimension description }
+}

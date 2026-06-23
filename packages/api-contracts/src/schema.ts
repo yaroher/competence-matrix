@@ -71,6 +71,13 @@ export const schema = /* GraphQL */ `
     createLevelScale(input: NameInput!): LevelScale!
     upsertLevelDimensionDescriptor(input: LevelDimensionDescriptorInput!): LevelDimensionDescriptor!
     createScoringRule(input: ScoringRuleInput!): ScoringRule!
+    updateDevelopmentPlanItem(input: UpdateDevelopmentPlanItemInput!): DevelopmentPlanItem!
+  }
+
+  input UpdateDevelopmentPlanItemInput {
+    id: ID!
+    status: String
+    dueDate: String
   }
 
   input UpdatePersonInput {

@@ -1,0 +1,20 @@
+query DevelopmentAdmin($assessmentId: ID!) {
+  developmentPlan(assessmentId: $assessmentId) {
+    id
+    person { id fullName }
+    assessment { id status }
+    items {
+      id
+      title
+      gap
+      status
+      dueDate
+      competency { id code name }
+    }
+  }
+  assessments { id status person { fullName } }
+}
+
+mutation UpdateDevelopmentPlanItem($input: UpdateDevelopmentPlanItemInput!) {
+  updateDevelopmentPlanItem(input: $input) { id status dueDate }
+}

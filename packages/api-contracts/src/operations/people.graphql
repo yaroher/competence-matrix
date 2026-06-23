@@ -106,3 +106,15 @@ mutation ArchiveAssignment($id: ID!) {
     status
   }
 }
+
+mutation CreateOrgUnitOp($input: OrgUnitInput!) {
+  createOrgUnit(input: $input) { id name type parentId }
+}
+
+mutation CreateAssignmentOp($input: CreateAssignmentInput!) {
+  createAssignment(input: $input) { id status person { id } orgUnit { id } }
+}
+
+mutation UpdatePersonOp($input: UpdatePersonInput!) {
+  updatePerson(input: $input) { id fullName email status }
+}

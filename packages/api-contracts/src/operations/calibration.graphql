@@ -17,4 +17,19 @@ query CalibrationSessionsDetailed {
       }
     }
   }
+  assessments {
+    id
+    person { fullName }
+    scores { id competency { name } level source }
+  }
 }
+
+mutation CreateCalibrationSession($input: NameInput!) {
+  createCalibrationSession(input: $input) { id name status }
+}
+mutation CloseCalibrationSession($id: ID!) { closeCalibrationSession(id: $id) { id status } }
+mutation AddCalibrationDecision($input: CalibrationDecisionInput!) {
+  addCalibrationDecision(input: $input) { id calibratedLevel }
+}
+mutation DeleteCalibrationDecision($id: ID!) { deleteCalibrationDecision(id: $id) }
+
