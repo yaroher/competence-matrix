@@ -18,7 +18,7 @@ services:
   api:
     image: node:22-alpine
     working_dir: /app
-    command: sh -c "yarn install --frozen-lockfile && yarn build:packages && yarn workspace @comatrix/web build && yarn db:migrate && yarn db:seed && yarn workspace @comatrix/api start"
+    command: sh -c "yarn install --frozen-lockfile && yarn build && yarn db:migrate && yarn db:seed && yarn workspace @comatrix/api start"
     environment:
       COMATRIX_API_PORT: "4000"
       COMATRIX_DATA_SOURCE: postgres
