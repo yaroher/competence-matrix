@@ -159,9 +159,10 @@ async function main() {
   );
   await db.insert(calibrationSessions).values(mvpSeed.calibrationSessions);
   await db.insert(calibrationDecisions).values(mvpSeed.calibrationDecisions);
-  await db.insert(auditEvents).values(
-    mvpSeed.auditEvents.map((event) => ({ ...event, createdAt: date(event.createdAt) })),
-  );
+  const auditRows = mvpSeed.auditEvents.map((event) => ({ ...event, createdAt: date(event.createdAt) }));
+  if (auditRows.length > 0) {
+    await db.insert(auditEvents).values(auditRows);
+  }
 
   await pool.end();
 }
