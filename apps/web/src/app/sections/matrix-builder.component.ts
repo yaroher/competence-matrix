@@ -11,6 +11,8 @@ import {
   DeleteMatrixRequirementDocument,
   MatricesAdminDocument,
   SkillTreeDocument,
+  UpdateCompetencyCategoryDocument,
+  UpdateCompetencyDocument,
   UpsertMatrixRequirementDocument,
   type MatricesAdminQuery,
   type SkillTreeQuery,
@@ -61,9 +63,9 @@ type Requirement = NonNullable<Matrix['activeRevision']>['requirements'][number]
       <div class="split">
         <!-- ── skill tree ── -->
         <aside class="tree">
-          <div class="tree-search">
-            <input class="fld" [(ngModel)]="filter" placeholder="{{ 'builder.search' | tr }}" />
-            <button class="tree-add-btn" type="button" (click)="toggleNewCat()" [class.active]="showNewCat()" title="{{ 'builder.addCategory' | tr }}">+</button>
+          <div class="tree-toolbar">
+            <input class="fld tree-filter" [(ngModel)]="filter" placeholder="{{ 'builder.search' | tr }}" />
+            <button class="icon-btn" type="button" (click)="toggleNewCat()" [class.active]="showNewCat()" title="{{ 'builder.addCategory' | tr }}">+</button>
           </div>
           @if (showNewCat()) {
             <div class="inline-form">
@@ -71,47 +73,70 @@ type Requirement = NonNullable<Matrix['activeRevision']>['requirements'][number]
               <button z-button zType="primary" zSize="sm" (click)="addCategory()" [disabled]="!newCatName().trim()">{{ 'common.add' | tr }}</button>
             </div>
           }
-          <div class="tree-scroll">
+          <div class="tree-body">
             @for (cat of treeFiltered(); track cat.id) {
-              <details class="cat" open>
-                <summary>
-                  <span class="cat-name">{{ cat.name }}</span>
-                  <span class="cat-tools">
-                    <span class="cat-count">{{ cat.competencies.length }}</span>
-                    <button class="cat-act" type="button" (click)="startAddComp(cat.id); $event.preventDefault()" title="{{ 'builder.addComp' | tr }}">+</button>
-                    <button class="cat-act danger" type="button" (click)="deleteCategory(cat.id, cat.name); $event.preventDefault()" title="{{ 'common.delete' | tr }}">×</button>
+              <div class="node folder">
+                <div class="row folder-row" [class.open]="!collapsed().has(cat.id)">
+                  <button class="caret" type="button" (click)="toggleCollapse(cat.id)" [attr.aria-expanded]="!collapsed().has(cat.id)">▸</button>
+                  <span class="glyph folder-glyph">▦</span>
+                  @if (editingCatId() === cat.id) {
+                    <input class="fld rename" [ngModel]="editCatName()" (ngModelChange)="editCatName.set($event)"
+                      (keyup.enter)="saveRenameCat()" (keyup.escape)="cancelRename()" (blur)="saveRenameCat()" />
+                  } @else {
+                    <span class="label" (dblclick)="startRenameCat(cat)">{{ cat.name }}</span>
+                  }
+                  <span class="count">{{ cat.competencies.length }}</span>
+                  <span class="row-actions">
+                    <button class="act" type="button" (click)="startAddComp(cat.id)" title="{{ 'builder.addComp' | tr }}">+</button>
+                    @if (editingCatId() !== cat.id) {
+                      <button class="act" type="button" (click)="startRenameCat(cat)" title="{{ 'common.edit' | tr }} ✎">✎</button>
+                    }
+                    <button class="act danger" type="button" (click)="deleteCategory(cat.id, cat.name)" title="{{ 'common.delete' | tr }}">×</button>
                   </span>
-                </summary>
+                </div>
                 @if (addingToCat() === cat.id) {
-                  <div class="inline-form compact">
+                  <div class="inline-form compact nest">
                     <input class="fld sm" [(ngModel)]="newCompCode" placeholder="{{ 'common.code' | tr }}" />
                     <input class="fld grow" [(ngModel)]="newCompName" placeholder="{{ 'comp.newCompName' | tr }}" (keyup.enter)="addComp(cat.id)" />
                     <button z-button zType="secondary" zSize="sm" (click)="addComp(cat.id)" [disabled]="!newCompCode().trim() || !newCompName().trim()">{{ 'common.add' | tr }}</button>
                   </div>
                 }
-                <div class="cat-comps">
-                  @for (comp of cat.competencies; track comp.id) {
-                    <div
-                      class="chip"
-                      [class.chip-added]="isAdded(comp.id)"
-                      [attr.draggable]="selectedMatrixId() ? 'true' : 'false'"
-                      [class.chip-disabled]="!selectedMatrixId()"
-                      (dragstart)="onDragStart($event, comp)"
-                      (dragend)="onDragEnd()"
-                    >
-                      <span class="chip-grip">⠿</span>
-                      <span class="chip-code">{{ comp.code }}</span>
-                      <span class="chip-name">{{ comp.name }}</span>
-                      <button class="chip-del" type="button" (click)="deleteComp(comp)" title="{{ 'common.delete' | tr }}">×</button>
-                      @if (isAdded(comp.id)) { <span class="chip-tick">✓</span> }
-                    </div>
-                  } @empty {
-                    <p class="muted small">{{ 'comp.noComps' | tr }}</p>
-                  }
-                </div>
-              </details>
+                @if (!collapsed().has(cat.id)) {
+                  <div class="children">
+                    @for (comp of cat.competencies; track comp.id) {
+                      <div
+                        class="row leaf-row"
+                        [class.added]="isAdded(comp.id)"
+                        [class.disabled]="!selectedMatrixId()"
+                        [attr.draggable]="selectedMatrixId() ? 'true' : 'false'"
+                        (dragstart)="onDragStart($event, comp)"
+                        (dragend)="onDragEnd()"
+                      >
+                        <span class="connector"></span>
+                        <span class="glyph leaf-glyph">●</span>
+                        @if (editingCompId() === comp.id) {
+                          <input class="fld rename" [ngModel]="editCompName()" (ngModelChange)="editCompName.set($event)"
+                            (keyup.enter)="saveRenameComp()" (keyup.escape)="cancelRename()" (blur)="saveRenameComp()" />
+                        } @else {
+                          <span class="code">{{ comp.code }}</span>
+                          <span class="label" (dblclick)="startRenameComp(comp)">{{ comp.name }}</span>
+                        }
+                        @if (isAdded(comp.id)) { <span class="tick">✓</span> }
+                        <span class="row-actions">
+                          @if (editingCompId() !== comp.id) {
+                            <button class="act" type="button" (click)="startRenameComp(comp)" title="✎">✎</button>
+                          }
+                          <button class="act danger" type="button" (click)="deleteComp(comp)" title="×">×</button>
+                        </span>
+                      </div>
+                    } @empty {
+                      <div class="row leaf-row muted"><span class="connector"></span><span class="empty-leaf">{{ 'comp.noComps' | tr }}</span></div>
+                    }
+                  </div>
+                }
+              </div>
             } @empty {
-              <p class="muted">{{ 'builder.treeEmpty' | tr }}</p>
+              <p class="muted tree-empty">{{ 'builder.treeEmpty' | tr }}</p>
             }
           </div>
         </aside>
@@ -199,45 +224,50 @@ type Requirement = NonNullable<Matrix['activeRevision']>['requirements'][number]
       @media (max-width: 920px) { .split { grid-template-columns: 1fr; } }
 
       .tree { display: flex; flex-direction: column; background: #fff; border: 1px solid #e4e7ec; border-radius: 14px; box-shadow: 0 1px 2px rgba(20,24,31,.04); overflow: hidden; max-height: 70vh; }
-      .tree-search { padding: 12px; border-bottom: 1px solid #eef1f5; display: flex; gap: 8px; align-items: center; }
-      .tree-search .fld { flex: 1; }
-      .tree-add-btn { flex: none; width: 32px; height: 32px; border-radius: 8px; border: 1px solid #d2d7df; background: #fff; color: #0e6e62; font-size: 18px; line-height: 1; cursor: pointer; transition: background 140ms, color 140ms; }
-      .tree-add-btn:hover, .tree-add-btn.active { background: #0e6e62; color: #fff; }
+      .tree-toolbar { display: flex; gap: 8px; align-items: center; padding: 12px; border-bottom: 1px solid #eef1f5; }
+      .tree-filter { flex: 1; }
+      .icon-btn { flex: none; width: 34px; height: 34px; border-radius: 8px; border: 1px solid #d2d7df; background: #fff; color: #0e6e62; font-size: 19px; line-height: 1; cursor: pointer; transition: background 140ms, color 140ms; }
+      .icon-btn:hover, .icon-btn.active { background: #0e6e62; color: #fff; }
 
       .inline-form { display: flex; gap: 6px; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eef1f5; background: #f9fafb; }
-      .inline-form.compact { margin: 6px 6px 2px; padding: 8px; border-radius: 9px; border: 1px solid #e4e7ec; background: #fff; border-bottom: 1px solid #e4e7ec; }
+      .inline-form.compact { margin: 4px 0 2px 26px; padding: 8px; border-radius: 9px; border: 1px solid #e4e7ec; background: #fff; }
+      .inline-form.nest { margin-left: 26px; }
       .inline-form .fld.grow { flex: 1; min-width: 0; }
-      .inline-form .fld.sm { width: 72px; }
+      .inline-form .fld.sm { width: 80px; }
 
-      .tree-scroll { overflow: auto; padding: 8px; }
+      .tree-body { overflow: auto; padding: 6px 4px 12px; font-size: 13px; }
+      .tree-empty { padding: 16px; text-align: center; }
 
-      details.cat { border-bottom: 1px solid #f1f3f6; }
-      details.cat:last-child { border-bottom: 0; }
-      .cat summary { display: flex; justify-content: space-between; align-items: center; padding: 9px 10px; cursor: pointer; border-radius: 8px; list-style: none; font-weight: 600; font-size: 13px; }
-      .cat summary::-webkit-details-marker { display: none; }
-      .cat summary:hover { background: #f6f7f9; }
-      .cat-name { letter-spacing: -0.01em; }
-      .cat-tools { display: flex; align-items: center; gap: 5px; }
-      .cat-count { font-size: 11px; color: #9aa3af; background: #eef1f5; border-radius: 999px; padding: 1px 8px; }
-      .cat-act { border: none; background: transparent; color: #9aa3af; font-size: 15px; line-height: 1; cursor: pointer; width: 22px; height: 22px; border-radius: 6px; transition: background 120ms, color 120ms; }
-      .cat-act:hover { background: #eef1f5; color: #0e6e62; }
-      .cat-act.danger:hover { background: #fbeae9; color: #a82a1f; }
-      .cat-comps { display: grid; gap: 5px; padding: 2px 6px 10px; }
-      .muted.small { font-size: 11.5px; padding: 4px 6px; }
+      .node { user-select: none; }
+      .row { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 7px; transition: background 120ms; position: relative; }
+      .row:hover { background: #f4f6f8; }
+      .folder-row { font-weight: 600; letter-spacing: -0.01em; cursor: default; }
+      .leaf-row { padding-left: 4px; cursor: grab; }
+      .leaf-row:active { cursor: grabbing; }
+      .leaf-row.disabled { opacity: .45; cursor: not-allowed; }
+      .leaf-row.added { color: #0b564d; }
 
-      .chip { display: flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid #e4e7ec; border-radius: 9px; background: #fff; font-size: 12.5px; cursor: grab; transition: border-color 140ms, box-shadow 140ms, transform 100ms; user-select: none; }
-      .chip:hover { border-color: #0e6e62; box-shadow: 0 0 0 3px rgba(14,110,98,.1); }
-      .chip:active { cursor: grabbing; transform: scale(.99); }
-      .chip-disabled { opacity: .45; cursor: not-allowed; }
-      .chip-disabled:hover { border-color: #e4e7ec; box-shadow: none; }
-      .chip-added { background: #f0f7f5; border-color: #cfe7e1; }
-      .chip-grip { color: #b9c0c9; font-size: 14px; line-height: 1; }
-      .chip-code { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: #626b7a; background: #eef1f5; border-radius: 5px; padding: 1px 5px; }
-      .chip-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .chip-del { flex: none; border: none; background: transparent; color: #c2c8d0; font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px; border-radius: 5px; opacity: 0; transition: opacity 120ms, color 120ms, background 120ms; }
-      .chip:hover .chip-del { opacity: 1; }
-      .chip-del:hover { color: #a82a1f; background: #fbeae9; }
-      .chip-tick { color: #0e6e62; font-weight: 700; }
+      .caret { flex: none; width: 18px; height: 18px; display: grid; place-items: center; border: none; background: transparent; color: #9aa3af; cursor: pointer; font-size: 11px; transition: transform 160ms ease; transform: rotate(0deg); }
+      .open .caret { transform: rotate(90deg); }
+      .glyph { flex: none; width: 16px; text-align: center; font-size: 12px; }
+      .folder-glyph { color: #0e6e62; }
+      .leaf-glyph { color: #b9c0c9; font-size: 8px; }
+      .connector { flex: none; width: 18px; height: 16px; border-left: 1px dotted #c9cfd7; border-bottom: 1px dotted #c9cfd7; margin-left: 15px; border-radius: 0 0 0 8px; }
+
+      .label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .code { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: #626b7a; background: #eef1f5; border-radius: 5px; padding: 1px 6px; flex: none; }
+      .count { flex: none; font-size: 10.5px; color: #9aa3af; background: #eef1f5; border-radius: 999px; padding: 0 7px; line-height: 16px; }
+      .tick { flex: none; color: #0e6e62; font-weight: 700; font-size: 12px; }
+      .empty-leaf { color: #aab1ba; font-style: italic; }
+
+      .row-actions { flex: none; display: flex; align-items: center; gap: 1px; opacity: 0; transition: opacity 120ms; }
+      .row:hover .row-actions { opacity: 1; }
+      .act { border: none; background: transparent; color: #9aa3af; font-size: 13px; line-height: 1; cursor: pointer; width: 22px; height: 22px; border-radius: 6px; transition: background 120ms, color 120ms; }
+      .act:hover { background: #e6e9ee; color: #0e6e62; }
+      .act.danger:hover { background: #fbeae9; color: #a82a1f; }
+
+      .rename { flex: 1; min-width: 0; padding: 2px 7px; font-size: 13px; }
+      .children { }
 
       .matrix { min-height: 320px; border-radius: 14px; background: #fff; border: 2px dashed #d7dde3; padding: 16px; display: flex; flex-direction: column; transition: border-color 160ms, background 160ms; box-shadow: 0 1px 2px rgba(20,24,31,.04); }
       .matrix-over { border-color: #0e6e62; background: #f3faf8; }
@@ -295,6 +325,12 @@ export class MatrixBuilderComponent {
   readonly addingToCat = signal<string | null>(null);
   readonly newCompCode = signal('');
   readonly newCompName = signal('');
+  // inline rename
+  readonly editingCatId = signal<string | null>(null);
+  readonly editCatName = signal('');
+  readonly editingCompId = signal<string | null>(null);
+  readonly editCompName = signal('');
+  readonly collapsed = signal<Set<string>>(new Set());
 
   readonly selectedMatrix = computed<Matrix | null>(() => this.matrices().find((m) => m.id === this.selectedMatrixId()) ?? null);
   readonly requirements = computed<readonly Requirement[]>(() => this.selectedMatrix()?.activeRevision?.requirements ?? []);
@@ -404,6 +440,45 @@ export class MatrixBuilderComponent {
   deleteComp(comp: TreeCompetency) {
     if (!confirm(`${this.i18n.t('builder.delCompConfirm')} "${comp.name}"?`)) return;
     this.api.mutate(DeleteCompetencyDocument, { id: comp.id }).subscribe({ error: (e) => this.toast.error(e.message) });
+  }
+
+  // ── inline rename ──
+  startRenameCat(cat: Category) {
+    this.editingCatId.set(cat.id);
+    this.editCatName.set(cat.name);
+    this.editingCompId.set(null);
+  }
+  saveRenameCat() {
+    const id = this.editingCatId();
+    const name = this.editCatName().trim();
+    if (id && name) {
+      this.api.mutate(UpdateCompetencyCategoryDocument, { input: { id, name } }).subscribe({ error: (e) => this.toast.error(e.message) });
+    }
+    this.editingCatId.set(null);
+  }
+  startRenameComp(comp: TreeCompetency) {
+    this.editingCompId.set(comp.id);
+    this.editCompName.set(comp.name);
+    this.editingCatId.set(null);
+  }
+  saveRenameComp() {
+    const id = this.editingCompId();
+    const name = this.editCompName().trim();
+    if (id && name) {
+      this.api.mutate(UpdateCompetencyDocument, { input: { id, name } }).subscribe({ error: (e) => this.toast.error(e.message) });
+    }
+    this.editingCompId.set(null);
+  }
+  cancelRename() {
+    this.editingCatId.set(null);
+    this.editingCompId.set(null);
+  }
+  toggleCollapse(id: string) {
+    this.collapsed.update((set) => {
+      const next = new Set(set);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   }
 
   private add(compId: string) {
