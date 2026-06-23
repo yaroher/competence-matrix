@@ -3,6 +3,9 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ApiService, DEV_PERSONAS, GapVm, MatrixRequirementVm, PeopleAssignmentsVm, ScoreVm, activeUserId } from './api.service';
 import { CompetenciesComponent } from './sections/competencies.component';
+import { RolesComponent } from './sections/roles.component';
+import { MatricesComponent } from './sections/matrices.component';
+import { AssessmentsComponent } from './sections/assessments.component';
 import { ZardBadgeComponent } from './shared/components/badge';
 import { ZardButtonComponent } from './shared/components/button';
 import { ZardCardComponent } from './shared/components/card';
@@ -38,6 +41,9 @@ interface OrgUnitNode extends OrgUnit {
     ZardTableHeaderComponent,
     ZardTableRowComponent,
     CompetenciesComponent,
+    RolesComponent,
+    MatricesComponent,
+    AssessmentsComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

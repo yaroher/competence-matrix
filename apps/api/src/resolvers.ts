@@ -143,6 +143,22 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed, provider: AuthPr
           const orgId = actorOrgId(ctx);
           return seed.scoringRules.filter((rule) => rule.organizationId === orgId);
         },
+        roleFamilies: (_parent, _args, ctx: ComatrixContext) => {
+          const orgId = actorOrgId(ctx);
+          return seed.roleFamilies.filter((f) => f.organizationId === orgId);
+        },
+        roles: () => seed.roles,
+        grades: (_parent, _args, ctx: ComatrixContext) => {
+          const orgId = actorOrgId(ctx);
+          return seed.grades.filter((g) => g.organizationId === orgId);
+        },
+        roleProfiles: () => seed.roleProfiles,
+        matrices: () => seed.matrices,
+        assessments: (_parent, _args, ctx: ComatrixContext) => {
+          const orgId = actorOrgId(ctx);
+          const personIds = new Set(seed.people.filter((p) => p.organizationId === orgId).map((p) => p.id));
+          return seed.assessments.filter((a) => personIds.has(a.personId));
+        },
         managerDashboard: (_parent, args: { managerPersonId: string }, ctx: ComatrixContext) => {
           requirePermission(ctx.session, 'analytics.read');
           const manager = findPerson(args.managerPersonId);

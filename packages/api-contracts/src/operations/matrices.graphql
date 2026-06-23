@@ -1,0 +1,30 @@
+query MatricesAdmin {
+  roleProfiles { id name }
+  matrices {
+    id
+    name
+    status
+    roleProfile { id name }
+    activeRevision {
+      id
+      version
+      requirements {
+        id
+        competency { id code name }
+        targetLevel
+        normalizedWeight
+        criticality
+        neededOnEntry
+      }
+    }
+  }
+  competencies: ontology { competencies { id code name } }
+}
+
+mutation CreateMatrix($input: MatrixInput!) {
+  createMatrix(input: $input) { id name status }
+}
+mutation UpsertMatrixRequirement($input: MatrixRequirementInput!) {
+  upsertMatrixRequirement(input: $input) { id targetLevel normalizedWeight criticality }
+}
+mutation DeleteMatrixRequirement($id: ID!) { deleteMatrixRequirement(id: $id) }

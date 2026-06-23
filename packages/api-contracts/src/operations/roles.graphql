@@ -1,0 +1,30 @@
+query RolesAdmin {
+  roleFamilies { id name }
+  roles { id name family { id name } }
+  grades { id name rank }
+  roleProfiles {
+    id
+    name
+    description
+    role { id name family { id name } }
+    grade { id name rank }
+    tasks { id name expectedOutcome criticality }
+  }
+}
+
+mutation CreateRoleFamily($input: NameInput!) {
+  createRoleFamily(input: $input) { id name }
+}
+mutation CreateRole($input: RoleInput!) {
+  createRole(input: $input) { id name }
+}
+mutation CreateGrade($input: GradeInput!) {
+  createGrade(input: $input) { id name rank }
+}
+mutation CreateRoleProfile($input: RoleProfileInput!) {
+  createRoleProfile(input: $input) { id name }
+}
+mutation CreateRoleTask($input: RoleTaskInput!) {
+  createRoleTask(input: $input) { id name }
+}
+mutation DeleteRoleTask($id: ID!) { deleteRoleTask(id: $id) }

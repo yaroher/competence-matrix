@@ -16,6 +16,12 @@ export const schema = /* GraphQL */ `
     calibrationSessions: [CalibrationSession!]!
     levelScales: [LevelScale!]!
     scoringRules: [ScoringRule!]!
+    roleFamilies: [RoleFamily!]!
+    roles: [Role!]!
+    grades: [Grade!]!
+    roleProfiles: [RoleProfile!]!
+    matrices: [Matrix!]!
+    assessments: [Assessment!]!
     managerDashboard(managerPersonId: ID!): ManagerDashboard
     organizationGapSummary: OrganizationGapSummary!
     exportMatrixRequirements(matrixRevisionId: ID!): [MatrixRequirementExportRow!]!

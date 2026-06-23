@@ -68,6 +68,12 @@
 
     @if (selectedNav() === 'Competencies') {
       <app-competencies />
+    } @else if (selectedNav() === 'Roles') {
+      <app-roles />
+    } @else if (selectedNav() === 'Matrices') {
+      <app-matrices />
+    } @else if (selectedNav() === 'Assessments') {
+      <app-assessments />
     } @else if (selectedNav() === 'Audit') {
       <section class="admin-grid" aria-label="Audit trail">
         <article class="panel admin-detail-panel" style="grid-column: 1 / -1">

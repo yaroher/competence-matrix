@@ -1,0 +1,31 @@
+query AssessmentsAdmin {
+  people { id fullName }
+  roleProfiles { id name }
+  matrices { id name activeRevision { id } }
+  assessments {
+    id
+    status
+    person { id fullName }
+    roleProfile { id name }
+    scores {
+      id
+      competency { id code name }
+      source
+      level
+      confidence
+      verificationStatus
+      comment
+    }
+  }
+  competencies: ontology { competencies { id code name } }
+}
+
+mutation CreateAssessment($input: CreateAssessmentInput!) {
+  createAssessment(input: $input) { id status }
+}
+mutation UpsertAssessmentScore($input: AssessmentScoreInput!) {
+  upsertAssessmentScore(input: $input) { id level source }
+}
+mutation FinalizeAssessmentAdmin($id: ID!) {
+  finalizeAssessment(id: $id) { id status }
+}
