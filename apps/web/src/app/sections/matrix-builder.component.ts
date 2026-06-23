@@ -3,7 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 import {
+  CreateCompetencyCategoryDocument,
+  CreateCompetencyDocument,
   CreateMatrixDocument,
+  DeleteCompetencyCategoryDocument,
+  DeleteCompetencyDocument,
   DeleteMatrixRequirementDocument,
   MatricesAdminDocument,
   SkillTreeDocument,
@@ -59,14 +63,32 @@ type Requirement = NonNullable<Matrix['activeRevision']>['requirements'][number]
         <aside class="tree">
           <div class="tree-search">
             <input class="fld" [(ngModel)]="filter" placeholder="{{ 'builder.search' | tr }}" />
+            <button class="tree-add-btn" type="button" (click)="toggleNewCat()" [class.active]="showNewCat()" title="{{ 'builder.addCategory' | tr }}">+</button>
           </div>
+          @if (showNewCat()) {
+            <div class="inline-form">
+              <input class="fld grow" [(ngModel)]="newCatName" placeholder="{{ 'builder.categoryName' | tr }}" (keyup.enter)="addCategory()" />
+              <button z-button zType="primary" zSize="sm" (click)="addCategory()" [disabled]="!newCatName().trim()">{{ 'common.add' | tr }}</button>
+            </div>
+          }
           <div class="tree-scroll">
             @for (cat of treeFiltered(); track cat.id) {
               <details class="cat" open>
                 <summary>
                   <span class="cat-name">{{ cat.name }}</span>
-                  <span class="cat-count">{{ cat.competencies.length }}</span>
+                  <span class="cat-tools">
+                    <span class="cat-count">{{ cat.competencies.length }}</span>
+                    <button class="cat-act" type="button" (click)="startAddComp(cat.id); $event.preventDefault()" title="{{ 'builder.addComp' | tr }}">+</button>
+                    <button class="cat-act danger" type="button" (click)="deleteCategory(cat.id, cat.name); $event.preventDefault()" title="{{ 'common.delete' | tr }}">×</button>
+                  </span>
                 </summary>
+                @if (addingToCat() === cat.id) {
+                  <div class="inline-form compact">
+                    <input class="fld sm" [(ngModel)]="newCompCode" placeholder="{{ 'common.code' | tr }}" />
+                    <input class="fld grow" [(ngModel)]="newCompName" placeholder="{{ 'comp.newCompName' | tr }}" (keyup.enter)="addComp(cat.id)" />
+                    <button z-button zType="secondary" zSize="sm" (click)="addComp(cat.id)" [disabled]="!newCompCode().trim() || !newCompName().trim()">{{ 'common.add' | tr }}</button>
+                  </div>
+                }
                 <div class="cat-comps">
                   @for (comp of cat.competencies; track comp.id) {
                     <div
@@ -80,8 +102,11 @@ type Requirement = NonNullable<Matrix['activeRevision']>['requirements'][number]
                       <span class="chip-grip">⠿</span>
                       <span class="chip-code">{{ comp.code }}</span>
                       <span class="chip-name">{{ comp.name }}</span>
+                      <button class="chip-del" type="button" (click)="deleteComp(comp)" title="{{ 'common.delete' | tr }}">×</button>
                       @if (isAdded(comp.id)) { <span class="chip-tick">✓</span> }
                     </div>
+                  } @empty {
+                    <p class="muted small">{{ 'comp.noComps' | tr }}</p>
                   }
                 </div>
               </details>
@@ -174,8 +199,16 @@ type Requirement = NonNullable<Matrix['activeRevision']>['requirements'][number]
       @media (max-width: 920px) { .split { grid-template-columns: 1fr; } }
 
       .tree { display: flex; flex-direction: column; background: #fff; border: 1px solid #e4e7ec; border-radius: 14px; box-shadow: 0 1px 2px rgba(20,24,31,.04); overflow: hidden; max-height: 70vh; }
-      .tree-search { padding: 12px; border-bottom: 1px solid #eef1f5; }
-      .tree-search .fld { width: 100%; }
+      .tree-search { padding: 12px; border-bottom: 1px solid #eef1f5; display: flex; gap: 8px; align-items: center; }
+      .tree-search .fld { flex: 1; }
+      .tree-add-btn { flex: none; width: 32px; height: 32px; border-radius: 8px; border: 1px solid #d2d7df; background: #fff; color: #0e6e62; font-size: 18px; line-height: 1; cursor: pointer; transition: background 140ms, color 140ms; }
+      .tree-add-btn:hover, .tree-add-btn.active { background: #0e6e62; color: #fff; }
+
+      .inline-form { display: flex; gap: 6px; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eef1f5; background: #f9fafb; }
+      .inline-form.compact { margin: 6px 6px 2px; padding: 8px; border-radius: 9px; border: 1px solid #e4e7ec; background: #fff; border-bottom: 1px solid #e4e7ec; }
+      .inline-form .fld.grow { flex: 1; min-width: 0; }
+      .inline-form .fld.sm { width: 72px; }
+
       .tree-scroll { overflow: auto; padding: 8px; }
 
       details.cat { border-bottom: 1px solid #f1f3f6; }
@@ -184,8 +217,13 @@ type Requirement = NonNullable<Matrix['activeRevision']>['requirements'][number]
       .cat summary::-webkit-details-marker { display: none; }
       .cat summary:hover { background: #f6f7f9; }
       .cat-name { letter-spacing: -0.01em; }
+      .cat-tools { display: flex; align-items: center; gap: 5px; }
       .cat-count { font-size: 11px; color: #9aa3af; background: #eef1f5; border-radius: 999px; padding: 1px 8px; }
+      .cat-act { border: none; background: transparent; color: #9aa3af; font-size: 15px; line-height: 1; cursor: pointer; width: 22px; height: 22px; border-radius: 6px; transition: background 120ms, color 120ms; }
+      .cat-act:hover { background: #eef1f5; color: #0e6e62; }
+      .cat-act.danger:hover { background: #fbeae9; color: #a82a1f; }
       .cat-comps { display: grid; gap: 5px; padding: 2px 6px 10px; }
+      .muted.small { font-size: 11.5px; padding: 4px 6px; }
 
       .chip { display: flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid #e4e7ec; border-radius: 9px; background: #fff; font-size: 12.5px; cursor: grab; transition: border-color 140ms, box-shadow 140ms, transform 100ms; user-select: none; }
       .chip:hover { border-color: #0e6e62; box-shadow: 0 0 0 3px rgba(14,110,98,.1); }
@@ -196,6 +234,9 @@ type Requirement = NonNullable<Matrix['activeRevision']>['requirements'][number]
       .chip-grip { color: #b9c0c9; font-size: 14px; line-height: 1; }
       .chip-code { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: #626b7a; background: #eef1f5; border-radius: 5px; padding: 1px 5px; }
       .chip-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .chip-del { flex: none; border: none; background: transparent; color: #c2c8d0; font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px; border-radius: 5px; opacity: 0; transition: opacity 120ms, color 120ms, background 120ms; }
+      .chip:hover .chip-del { opacity: 1; }
+      .chip-del:hover { color: #a82a1f; background: #fbeae9; }
       .chip-tick { color: #0e6e62; font-weight: 700; }
 
       .matrix { min-height: 320px; border-radius: 14px; background: #fff; border: 2px dashed #d7dde3; padding: 16px; display: flex; flex-direction: column; transition: border-color 160ms, background 160ms; box-shadow: 0 1px 2px rgba(20,24,31,.04); }
@@ -247,6 +288,13 @@ export class MatrixBuilderComponent {
   readonly newProfile = signal('');
   readonly draggedId = signal<string | null>(null);
   readonly dragOver = signal(false);
+
+  // tree editing
+  readonly showNewCat = signal(false);
+  readonly newCatName = signal('');
+  readonly addingToCat = signal<string | null>(null);
+  readonly newCompCode = signal('');
+  readonly newCompName = signal('');
 
   readonly selectedMatrix = computed<Matrix | null>(() => this.matrices().find((m) => m.id === this.selectedMatrixId()) ?? null);
   readonly requirements = computed<readonly Requirement[]>(() => this.selectedMatrix()?.activeRevision?.requirements ?? []);
@@ -315,6 +363,47 @@ export class MatrixBuilderComponent {
     this.draggedId.set(null);
     if (!compId || !this.selectedMatrix()) return;
     this.add(compId);
+  }
+
+  // ── skill tree CRUD ──
+  toggleNewCat() {
+    this.showNewCat.set(!this.showNewCat());
+    this.newCatName.set('');
+  }
+  addCategory() {
+    const name = this.newCatName().trim();
+    if (!name) return;
+    this.api.mutate(CreateCompetencyCategoryDocument, {
+      input: { organizationId: 'org-demo', categoryType: 'domain', name, description: '' },
+    }).subscribe({
+      next: () => { this.newCatName.set(''); this.showNewCat.set(false); },
+      error: (e) => this.toast.error(e.message),
+    });
+  }
+  deleteCategory(id: string, name: string) {
+    if (!confirm(`${this.i18n.t('builder.delCatConfirm')} "${name}"?`)) return;
+    this.api.mutate(DeleteCompetencyCategoryDocument, { id }).subscribe({ error: (e) => this.toast.error(e.message) });
+  }
+
+  startAddComp(catId: string) {
+    this.addingToCat.set(this.addingToCat() === catId ? null : catId);
+    this.newCompCode.set('');
+    this.newCompName.set('');
+  }
+  addComp(catId: string) {
+    const code = this.newCompCode().trim();
+    const name = this.newCompName().trim();
+    if (!code || !name) return;
+    this.api.mutate(CreateCompetencyDocument, {
+      input: { organizationId: 'org-demo', categoryId: catId, code, name, description: '', tags: [] },
+    }).subscribe({
+      next: () => { this.newCompCode.set(''); this.newCompName.set(''); },
+      error: (e) => this.toast.error(e.message),
+    });
+  }
+  deleteComp(comp: TreeCompetency) {
+    if (!confirm(`${this.i18n.t('builder.delCompConfirm')} "${comp.name}"?`)) return;
+    this.api.mutate(DeleteCompetencyDocument, { id: comp.id }).subscribe({ error: (e) => this.toast.error(e.message) });
   }
 
   private add(compId: string) {

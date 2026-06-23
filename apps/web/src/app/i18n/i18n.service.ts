@@ -117,6 +117,11 @@ const RU: Dict = {
   'builder.critMedium': 'средняя',
   'builder.critLow': 'низкая',
   'builder.inMatrix': 'в матрице',
+  'builder.addCategory': 'Добавить категорию',
+  'builder.categoryName': 'Название категории',
+  'builder.addComp': 'Добавить компетенцию',
+  'builder.delCatConfirm': 'Удалить категорию',
+  'builder.delCompConfirm': 'Удалить компетенцию',
 
   'assess.title': 'Оценки',
   'assess.subtitle': 'Рабочее пространство',
@@ -307,6 +312,11 @@ const EN: Dict = {
   'builder.critMedium': 'medium',
   'builder.critLow': 'low',
   'builder.inMatrix': 'in matrix',
+  'builder.addCategory': 'Add category',
+  'builder.categoryName': 'Category name',
+  'builder.addComp': 'Add competency',
+  'builder.delCatConfirm': 'Delete category',
+  'builder.delCompConfirm': 'Delete competency',
 
   'assess.title': 'Assessments',
   'assess.subtitle': 'Workspace',
