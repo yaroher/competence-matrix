@@ -172,6 +172,33 @@ nav {
   margin-bottom: 14px;
 }
 
+.dash-intro {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(14, 110, 98, 0.08), transparent 55%),
+    var(--panel);
+  border: 1px solid rgba(228, 231, 236, 0.8);
+  box-shadow: var(--shadow-sm);
+}
+
+.dash-intro p {
+  margin: 0;
+  color: var(--accent-ink);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 78ch;
+}
+
+.dash-intro-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .metrics article,
 .panel,
 .loading {

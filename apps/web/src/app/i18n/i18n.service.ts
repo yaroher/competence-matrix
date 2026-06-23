@@ -47,6 +47,11 @@ const RU: Dict = {
   'dash.loading': 'Загрузка MVP-среза',
   'dash.waiting': 'Ожидание GraphQL API на /graphql',
   'dash.orgUnits': 'орг. единиц',
+  'dash.snapshotEyebrow': 'Что это такое',
+  'dash.snapshotBody': 'Демо-срез: организация, профиль роли с матрицей компетенций и оценка сотрудника. Остальные разделы слева — полный CRUD по каждой сущности домена.',
+  'dash.snapshotOrg': 'Организация',
+  'dash.snapshotProfile': 'Профиль роли',
+  'dash.snapshotPerson': 'Сотрудник',
 
   'common.create': 'Создать',
   'common.add': 'Добавить',
@@ -215,6 +220,11 @@ const EN: Dict = {
   'dash.loading': 'Loading MVP slice',
   'dash.waiting': 'Waiting for GraphQL API on /graphql',
   'dash.orgUnits': 'org units',
+  'dash.snapshotEyebrow': 'What this is',
+  'dash.snapshotBody': 'Demo snapshot: the organization, a role profile with its competence matrix, and an employee assessment. The other sections on the left are full CRUD for each domain entity.',
+  'dash.snapshotOrg': 'Organization',
+  'dash.snapshotProfile': 'Role profile',
+  'dash.snapshotPerson': 'Employee',
 
   'common.create': 'Create',
   'common.add': 'Add',

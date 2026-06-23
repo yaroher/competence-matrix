@@ -81,6 +81,7 @@ export class AppComponent {
   readonly orgGapSummary = toSignal(this.api.gapSummary$);
   readonly auditEvents = computed(() => this.people()?.auditEvents ?? []);
   readonly actor = computed(() => this.people()?.currentActor ?? null);
+  readonly sectionKey = computed(() => this.navItems.find((item) => item.id === this.selectedNav())?.key ?? 'nav.dashboard');
   readonly personas = DEV_PERSONAS;
   readonly activeUserId = activeUserId;
 

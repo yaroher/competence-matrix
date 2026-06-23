@@ -52,7 +52,7 @@
     <header class="topbar">
       <div>
         <span class="eyebrow">{{ data()?.organization?.name ?? ('app.orgLoading' | tr) }}</span>
-        <h1>{{ data()?.roleProfile?.name ?? ('app.roleFallback' | tr) }}</h1>
+        <h1>{{ sectionKey() | tr }}</h1>
       </div>
       <div class="topbar-actions">
         <div class="lang-switch">
@@ -414,6 +414,16 @@
         }
       </section>
     } @else if (data(); as vm) {
+      <aside class="dash-intro">
+        <span class="eyebrow">{{ 'dash.snapshotEyebrow' | tr }}</span>
+        <p>{{ 'dash.snapshotBody' | tr }}</p>
+        <div class="dash-intro-tags">
+          <z-badge zType="outline" zShape="pill">{{ vm.organization.name }}</z-badge>
+          <z-badge zType="secondary" zShape="pill">{{ vm.roleProfile.name }}</z-badge>
+          <z-badge zType="outline" zShape="pill">{{ vm.assessment.person.fullName }}</z-badge>
+        </div>
+      </aside>
+
       <section class="metrics" aria-label="Dashboard metrics">
         <article>
           <span>{{ 'dash.activeCycle' | tr }}</span>
