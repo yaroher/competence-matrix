@@ -9,6 +9,8 @@ import {
   type MatricesAdminQuery,
 } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { I18nService } from '../i18n/i18n.service';
+import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
 import { ZardButtonComponent } from '../shared/components/button';
 
@@ -17,19 +19,19 @@ type Matrix = MatricesAdminQuery['matrices'][number];
 @Component({
   selector: 'app-matrices',
   standalone: true,
-  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent],
+  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent, TrPipe],
   template: `
     <section class="section">
-      <header class="section-head"><div><span class="eyebrow">Builder</span><h2>Matrices</h2></div></header>
+      <header class="section-head"><div><span class="eyebrow">{{ 'matrices.subtitle' | tr }}</span><h2>{{ 'matrices.title' | tr }}</h2></div></header>
 
       <article class="panel">
-        <h3>New matrix</h3>
+        <h3>{{ 'matrices.new' | tr }}</h3>
         <div class="form-row">
           <select class="fld" [(ngModel)]="newProfile">
             @for (p of data()?.roleProfiles; track p.id) { <option [value]="p.id">{{ p.name }}</option> }
           </select>
-          <input class="fld grow" [(ngModel)]="newName" placeholder="Matrix name"/>
-          <button z-button zType="primary" zSize="sm" (click)="create()" [disabled]="!newName().trim()">Create</button>
+          <input class="fld grow" [(ngModel)]="newName" placeholder="{{ 'matrices.matrixName' | tr }}"/>
+          <button z-button zType="primary" zSize="sm" (click)="create()" [disabled]="!newName().trim()">{{ 'common.create' | tr }}</button>
         </div>
       </article>
 
@@ -44,15 +46,15 @@ type Matrix = MatricesAdminQuery['matrices'][number];
             <select class="fld grow" [(ngModel)]="reqComp">
               @for (c of comps(); track c.id) { <option [value]="c.id">{{ c.code }} · {{ c.name }}</option> }
             </select>
-            <label class="muted">target <input class="fld sm" type="number" min="0" max="5" [(ngModel)]="reqLevel"/></label>
-            <label class="muted">weight <input class="fld sm" type="number" step="0.01" [(ngModel)]="reqWeight"/></label>
+            <label class="muted">{{ 'matrices.target' }} <input class="fld sm" type="number" min="0" max="5" [(ngModel)]="reqLevel"/></label>
+            <label class="muted">{{ 'matrices.weight' }} <input class="fld sm" type="number" step="0.01" [(ngModel)]="reqWeight"/></label>
             <select class="fld" [(ngModel)]="reqCrit" style="width:110px"><option value="high">high</option><option value="medium">medium</option><option value="low">low</option></select>
-            <button z-button zType="secondary" zSize="sm" (click)="addReq(m)" [disabled]="!reqComp()">Add requirement</button>
+            <button z-button zType="secondary" zSize="sm" (click)="addReq(m)" [disabled]="!reqComp()">{{ 'matrices.addRequirement' | tr }}</button>
           </div>
 
           @if (m.activeRevision?.requirements.length) {
             <table class="crud">
-              <thead><tr><th>Competency</th><th>Target</th><th>Weight</th><th>Criticality</th><th></th></tr></thead>
+              <thead><tr><th>{{ 'analytics.competency' | tr }}</th><th>{{ 'matrices.target' | tr }}</th><th>{{ 'matrices.weight' | tr }}</th><th>{{ 'analytics.criticality' | tr }}</th><th></th></tr></thead>
               <tbody>
                 @for (r of m.activeRevision.requirements; track r.id) {
                   <tr><td>{{ r.competency?.code }}</td><td>{{ r.targetLevel }}</td><td>{{ r.normalizedWeight }}</td><td>{{ r.criticality }}</td>
@@ -60,7 +62,7 @@ type Matrix = MatricesAdminQuery['matrices'][number];
                 }
               </tbody>
             </table>
-          } @else { <p class="muted">No requirements yet.</p> }
+          } @else { <p class="muted">{{ 'matrices.noRequirements' | tr }}</p> }
         </article>
       }
     </section>
@@ -69,6 +71,7 @@ type Matrix = MatricesAdminQuery['matrices'][number];
 })
 export class MatricesComponent {
   private readonly api = inject(ApiService);
+  private readonly i18n = inject(I18nService);
   readonly data = toSignal(this.api.query(MatricesAdminDocument), { initialValue: null });
   readonly matrices = computed<readonly Matrix[]>(() => this.data()?.matrices ?? []);
   readonly comps = computed(() => this.data()?.competencies.competencies ?? []);

@@ -3,28 +3,30 @@ import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CreateLevelScaleDocument, CreateScoringRuleOpDocument, LevelScalesDetailedDocument, ScoringRulesListDocument, SetDefaultScoringRuleDocument, UpsertLevelDimensionDescriptorDocument, type LevelScalesDetailedQuery, type ScoringRulesListQuery } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { I18nService } from '../i18n/i18n.service';
+import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
 import { ZardButtonComponent } from '../shared/components/button';
 
 @Component({
   selector: 'app-methodology-section',
   standalone: true,
-  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent],
+  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent, TrPipe],
   template: `
     <section class="section">
-      <header class="section-head"><div><span class="eyebrow">Methodology</span><h2>Scales & scoring</h2></div></header>
+      <header class="section-head"><div><span class="eyebrow">{{ 'method.subtitle' | tr }}</span><h2>{{ 'method.title' | tr }}</h2></div></header>
 
       <article class="panel">
-        <h3>Level scales</h3>
-        <div class="form-row"><input class="fld grow" [(ngModel)]="newScale" placeholder="New scale name"/><button z-button zType="primary" zSize="sm" (click)="addScale()" [disabled]="!newScale().trim()">Create scale</button></div>
+        <h3>{{ 'method.scales' | tr }}</h3>
+        <div class="form-row"><input class="fld grow" [(ngModel)]="newScale" placeholder="{{ 'method.newScale' | tr }}"/><button z-button zType="primary" zSize="sm" (click)="addScale()" [disabled]="!newScale().trim()">{{ 'method.createScale' | tr }}</button></div>
         @for (s of scales(); track s.id) {
           <div class="block">
-            <div class="form-row"><strong>{{ s.name }}</strong> @if (s.isDefault) { <z-badge zType="secondary" zShape="pill">default</z-badge> }</div>
+            <div class="form-row"><strong>{{ s.name }}</strong> @if (s.isDefault) { <z-badge zType="secondary" zShape="pill">{{ 'method.default' | tr }}</z-badge> }</div>
             <div class="form-row">
-              <input class="fld sm" type="number" min="0" max="5" [(ngModel)]="dimLevel" placeholder="lvl"/>
+              <input class="fld sm" type="number" min="0" max="5" [(ngModel)]="dimLevel" placeholder="{{ 'method.dimLevel' | tr }}"/>
               <select class="fld" [(ngModel)]="dimName"><option value="autonomy">autonomy</option><option value="complexity">complexity</option><option value="influence">influence</option><option value="support">support</option><option value="impact">impact</option></select>
-              <input class="fld grow" [(ngModel)]="dimDesc" placeholder="what it looks like"/>
-              <button z-button zType="secondary" zSize="sm" (click)="addDim(s.id)" [disabled]="!dimDesc().trim()">Add dimension</button>
+              <input class="fld grow" [(ngModel)]="dimDesc" placeholder="{{ 'method.dimDesc' | tr }}"/>
+              <button z-button zType="secondary" zSize="sm" (click)="addDim(s.id)" [disabled]="!dimDesc().trim()">{{ 'method.addDimension' | tr }}</button>
             </div>
             @for (d of s.dimensionDescriptors; track d.id) { <div class="item"><span>L{{ d.levelValue }} · {{ d.dimension }}</span><span class="muted">{{ d.description }}</span></div> }
           </div>
@@ -32,12 +34,12 @@ import { ZardButtonComponent } from '../shared/components/button';
       </article>
 
       <article class="panel">
-        <h3>Scoring rules</h3>
-        <div class="form-row"><input class="fld" [(ngModel)]="ruleName" placeholder="rule name" style="width:160px"/><input class="fld sm" type="number" step="0.05" [(ngModel)]="ruleConf" placeholder="conf"/><button z-button zType="secondary" zSize="sm" (click)="addRule()" [disabled]="!ruleName().trim()">Add</button></div>
+        <h3>{{ 'method.scoringRules' | tr }}</h3>
+        <div class="form-row"><input class="fld" [(ngModel)]="ruleName" placeholder="{{ 'method.ruleName' | tr }}" style="width:160px"/><input class="fld sm" type="number" step="0.05" [(ngModel)]="ruleConf" placeholder="conf"/><button z-button zType="secondary" zSize="sm" (click)="addRule()" [disabled]="!ruleName().trim()">{{ 'common.add' | tr }}</button></div>
         @for (r of rules(); track r.id) { <div class="item"><span>{{ r.name }} (conf ≥ {{ r.confidenceThreshold }})</span>
           <div class="form-row"><z-badge zType="outline" zShape="pill">{{ r.status }}</z-badge>
-            @if (!r.isDefault) { <button z-button zType="ghost" zSize="sm" (click)="setDefault(r.id)">Set default</button> }
-            @else { <z-badge zType="secondary" zShape="pill">default</z-badge> }</div></div> }
+            @if (!r.isDefault) { <button z-button zType="ghost" zSize="sm" (click)="setDefault(r.id)">{{ 'method.setDefault' | tr }}</button> }
+            @else { <z-badge zType="secondary" zShape="pill">{{ 'method.default' | tr }}</z-badge> }</div></div> }
       </article>
     </section>
   `,
@@ -45,6 +47,7 @@ import { ZardButtonComponent } from '../shared/components/button';
 })
 export class MethodologySectionComponent {
   private readonly api = inject(ApiService);
+  private readonly i18n = inject(I18nService);
   readonly scalesData = toSignal(this.api.query(LevelScalesDetailedDocument), { initialValue: null });
   readonly rulesData = toSignal(this.api.query(ScoringRulesListDocument), { initialValue: null });
   readonly scales = computed<readonly LevelScalesDetailedQuery['levelScales'][number][]>(() => this.scalesData()?.levelScales ?? []);

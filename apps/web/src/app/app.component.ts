@@ -10,6 +10,8 @@ import { DevelopmentComponent } from './sections/development.component';
 import { CalibrationSectionComponent } from './sections/calibration.component';
 import { MethodologySectionComponent } from './sections/methodology.component';
 import { AdminSectionComponent } from './sections/admin.component';
+import { I18nService } from './i18n/i18n.service';
+import { TrPipe } from './i18n/tr.pipe';
 import { ZardBadgeComponent } from './shared/components/badge';
 import { ZardButtonComponent } from './shared/components/button';
 import { ZardCardComponent } from './shared/components/card';
@@ -52,12 +54,14 @@ interface OrgUnitNode extends OrgUnit {
     CalibrationSectionComponent,
     MethodologySectionComponent,
     AdminSectionComponent,
+    TrPipe,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
 export class AppComponent {
   private readonly api = inject(ApiService);
+  readonly i18n = inject(I18nService);
   readonly selectedNav = signal('Dashboard');
   readonly loggedIn = signal(false);
   readonly loginUserId = signal(activeUserId());
@@ -144,17 +148,17 @@ export class AppComponent {
   });
 
   navItems = [
-    'Dashboard',
-    'Competencies',
-    'Roles',
-    'Matrices',
-    'Assessments',
-    'Calibration',
-    'Development',
-    'Analytics',
-    'Methodology',
-    'Audit',
-    'Admin',
+    { id: 'Dashboard', key: 'nav.dashboard' },
+    { id: 'Competencies', key: 'nav.competencies' },
+    { id: 'Roles', key: 'nav.roles' },
+    { id: 'Matrices', key: 'nav.matrices' },
+    { id: 'Assessments', key: 'nav.assessments' },
+    { id: 'Calibration', key: 'nav.calibration' },
+    { id: 'Development', key: 'nav.development' },
+    { id: 'Analytics', key: 'nav.analytics' },
+    { id: 'Methodology', key: 'nav.methodology' },
+    { id: 'Audit', key: 'nav.audit' },
+    { id: 'Admin', key: 'nav.admin' },
   ];
 
   requirementTrack(_index: number, item: MatrixRequirementVm) {

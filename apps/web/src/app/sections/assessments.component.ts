@@ -9,6 +9,8 @@ import {
   type AssessmentsAdminQuery,
 } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { I18nService } from '../i18n/i18n.service';
+import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
 import { ZardButtonComponent } from '../shared/components/button';
 
@@ -18,18 +20,18 @@ type Score = Assessment['scores'][number];
 @Component({
   selector: 'app-assessments',
   standalone: true,
-  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent],
+  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent, TrPipe],
   template: `
     <section class="section">
-      <header class="section-head"><div><span class="eyebrow">Workspace</span><h2>Assessments</h2></div></header>
+      <header class="section-head"><div><span class="eyebrow">{{ 'assess.subtitle' | tr }}</span><h2>{{ 'assess.title' | tr }}</h2></div></header>
 
       <article class="panel">
-        <h3>New assessment</h3>
+        <h3>{{ 'assess.new' | tr }}</h3>
         <div class="form-row">
           <select class="fld" [(ngModel)]="newPerson">@for (p of data()?.people; track p.id) { <option [value]="p.id">{{ p.fullName }}</option> }</select>
           <select class="fld" [(ngModel)]="newProfile">@for (p of data()?.roleProfiles; track p.id) { <option [value]="p.id">{{ p.name }}</option> }</select>
           <select class="fld" [(ngModel)]="newRevision">@for (m of data()?.matrices; track m.id) { <option [value]="m.activeRevision.id">{{ m.name }}</option> }</select>
-          <button z-button zType="primary" zSize="sm" (click)="create()">Create</button>
+          <button z-button zType="primary" zSize="sm" (click)="create()">{{ 'common.create' | tr }}</button>
         </div>
       </article>
 
@@ -38,21 +40,21 @@ type Score = Assessment['scores'][number];
           <header class="panel-head">
             <div><strong>{{ a.person?.fullName }}</strong> <span class="muted">{{ a.roleProfile?.name }}</span></div>
             <div class="form-row"><z-badge zType="secondary" zShape="pill">{{ a.status }}</z-badge>
-              <button z-button zType="ghost" zSize="sm" (click)="finalize(a.id)" [disabled]="a.status==='finalized'">Finalize</button></div>
+              <button z-button zType="ghost" zSize="sm" (click)="finalize(a.id)" [disabled]="a.status==='finalized'">{{ 'assess.finalize' | tr }}</button></div>
           </header>
 
           <div class="form-row">
-            <select class="fld grow" [(ngModel)]="scoreComp"><option [ngValue]="null">select competency…</option>@for (c of comps(); track c.id) { <option [value]="c.id">{{ c.code }} · {{ c.name }}</option> }</select>
+            <select class="fld grow" [(ngModel)]="scoreComp"><option [ngValue]="null">{{ 'assess.selectComp' | tr }}</option>@for (c of comps(); track c.id) { <option [value]="c.id">{{ c.code }} · {{ c.name }}</option> }</select>
             <select class="fld" [(ngModel)]="scoreSource"><option value="self">self</option><option value="manager">manager</option><option value="expert">expert</option><option value="final">final</option></select>
-            <label class="muted">level <input class="fld sm" type="number" min="0" max="5" [(ngModel)]="scoreLevel"/></label>
-            <button z-button zType="secondary" zSize="sm" (click)="saveScore(a)" [disabled]="!scoreComp()">Save score</button>
+            <label class="muted">{{ 'matrices.target' }} <input class="fld sm" type="number" min="0" max="5" [(ngModel)]="scoreLevel"/></label>
+            <button z-button zType="secondary" zSize="sm" (click)="saveScore(a)" [disabled]="!scoreComp()">{{ 'assess.saveScore' | tr }}</button>
           </div>
 
           @if (a.scores.length) {
-            <table class="crud"><thead><tr><th>Competency</th><th>Source</th><th>Level</th><th>Conf.</th></tr></thead><tbody>
+            <table class="crud"><thead><tr><th>{{ 'analytics.competency' | tr }}</th><th>source</th><th>{{ 'matrices.target' | tr }}</th><th>{{ 'assess.conf' | tr }}</th></tr></thead><tbody>
               @for (s of a.scores; track s.id) { <tr><td>{{ s.competency?.code }}</td><td>{{ s.source }}</td><td>{{ s.level }}</td><td>{{ s.confidence }}</td></tr> }
             </tbody></table>
-          } @else { <p class="muted">No scores yet.</p> }
+          } @else { <p class="muted">{{ 'assess.noScores' | tr }}</p> }
         </article>
       }
     </section>
@@ -61,6 +63,7 @@ type Score = Assessment['scores'][number];
 })
 export class AssessmentsComponent {
   private readonly api = inject(ApiService);
+  private readonly i18n = inject(I18nService);
   readonly data = toSignal(this.api.query(AssessmentsAdminDocument), { initialValue: null });
   readonly assessments = computed<readonly Assessment[]>(() => this.data()?.assessments ?? []);
   readonly comps = computed<readonly { id: string; code: string; name: string }[]>(() => this.data()?.competencies.competencies ?? []);
@@ -70,5 +73,5 @@ export class AssessmentsComponent {
 
   create() { this.api.mutate(CreateAssessmentDocument, { input: { personId: this.newPerson(), roleProfileId: this.newProfile(), matrixRevisionId: this.newRevision() } }).subscribe({ error: (e) => alert(e.message) }); }
   saveScore(a: Assessment) { const c = this.scoreComp(); if (!c) return; this.api.mutate(UpsertAssessmentScoreDocument, { input: { assessmentId: a.id, competencyId: c, source: this.scoreSource(), level: Number(this.scoreLevel()), confidence: 0.7, verificationStatus: 'unverified', comment: '' } }).subscribe({ error: (e) => alert(e.message) }); }
-  finalize(id: string) { if (!confirm('Finalize assessment?')) return; this.api.mutate(FinalizeAssessmentAdminDocument, { id }).subscribe({ error: (e) => alert(e.message) }); }
+  finalize(id: string) { if (!confirm(this.i18n.t('assess.finalizeConfirm'))) return; this.api.mutate(FinalizeAssessmentAdminDocument, { id }).subscribe({ error: (e) => alert(e.message) }); }
 }

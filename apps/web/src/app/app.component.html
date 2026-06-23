@@ -2,8 +2,8 @@
   <main class="login-shell">
     <section class="login-card">
       <span class="brand-mark login-mark">CM</span>
-      <strong>Competence Matrix</strong>
-      <span class="muted">Sign in to continue (dev personas)</span>
+      <strong>{{ 'login.title' | tr }}</strong>
+      <span class="muted">{{ 'login.subtitle' | tr }}</span>
 
       <select class="login-select" [value]="loginUserId()" (change)="loginUserId.set($any($event.target).value)">
         @for (persona of personas; track persona.id) {
@@ -11,7 +11,12 @@
         }
       </select>
 
-      <button z-button zType="primary" zFull type="button" (click)="doLogin()">Sign in</button>
+      <div class="lang-switch">
+        <button type="button" class="lang-btn" [class.lang-active]="i18n.lang() === 'ru'" (click)="i18n.setLang('ru')">RU</button>
+        <button type="button" class="lang-btn" [class.lang-active]="i18n.lang() === 'en'" (click)="i18n.setLang('en')">EN</button>
+      </div>
+
+      <button z-button zType="primary" zFull type="button" (click)="doLogin()">{{ 'login.signin' | tr }}</button>
     </section>
   </main>
 } @else {
@@ -20,23 +25,23 @@
     <div class="brand">
       <span class="brand-mark">CM</span>
       <div>
-        <strong>Competence Matrix</strong>
-        <span>v0.1 slice</span>
+        <strong>{{ 'app.title' | tr }}</strong>
+        <span>{{ 'app.version' | tr }}</span>
       </div>
     </div>
 
     <nav aria-label="Primary">
-      @for (item of navItems; track item) {
+      @for (item of navItems; track item.id) {
         <button
           z-button
           zType="ghost"
           zFull
           class="nav-button"
           type="button"
-          [class.nav-active]="selectedNav() === item"
-          (click)="selectedNav.set(item)"
+          [class.nav-active]="selectedNav() === item.id"
+          (click)="selectedNav.set(item.id)"
         >
-          {{ item }}
+          {{ item.key | tr }}
         </button>
       }
     </nav>
@@ -45,24 +50,24 @@
   <section class="workspace">
     <header class="topbar">
       <div>
-        <span class="eyebrow">{{ data()?.organization?.name ?? 'Loading organization' }}</span>
-        <h1>{{ data()?.roleProfile?.name ?? 'Backend Go Engineer / Senior' }}</h1>
+        <span class="eyebrow">{{ data()?.organization?.name ?? ('app.orgLoading' | tr) }}</span>
+        <h1>{{ data()?.roleProfile?.name ?? ('app.roleFallback' | tr) }}</h1>
       </div>
       <div class="topbar-actions">
+        <div class="lang-switch">
+          <button type="button" class="lang-btn" [class.lang-active]="i18n.lang() === 'ru'" (click)="i18n.setLang('ru')">RU</button>
+          <button type="button" class="lang-btn" [class.lang-active]="i18n.lang() === 'en'" (click)="i18n.setLang('en')">EN</button>
+        </div>
         @if (actor(); as actorVm) {
-          <z-badge zType="secondary" zShape="pill">{{ actorVm.user.role }}</z-badge>
-          <select class="actor-switch" [value]="activeUserId()" (change)="switchUser($any($event.target).value)">
-            @for (persona of personas; track persona.id) {
-              <option [value]="persona.id">{{ persona.label }}</option>
-            }
-          </select>
+          <div class="account">
+            <div class="account-info">
+              <strong>{{ actorVm.person?.fullName ?? actorVm.user.email }}</strong>
+              <span class="muted">{{ actorVm.user.email }} · {{ actorVm.user.role }}</span>
+            </div>
+            <span class="account-avatar">{{ (actorVm.person?.fullName ?? actorVm.user.email)[0] }}</span>
+          </div>
+          <button z-button zType="ghost" zSize="sm" type="button" (click)="doLogout()">{{ 'login.signout' | tr }}</button>
         }
-        @if (actorAssignment(); as assignment) {
-          <z-badge zType="secondary" zShape="pill">{{ assignment.orgUnit.name }}</z-badge>
-          <z-badge zType="outline" zShape="pill">{{ assignment.roleProfile.name }}</z-badge>
-        }
-        <z-badge zType="outline" zShape="pill">{{ orgUnitCount() }} org units</z-badge>
-        <button z-button zType="ghost" zSize="sm" type="button" (click)="doLogout()">Sign out</button>
       </div>
     </header>
 
@@ -87,20 +92,20 @@
         <article class="panel admin-detail-panel" style="grid-column: 1 / -1">
           <div class="panel-header">
             <div>
-              <span class="eyebrow">Audit trail</span>
-              <h2>Recent changes</h2>
+              <span class="eyebrow">{{ 'audit.subtitle' | tr }}</span>
+              <h2>{{ 'audit.recent' | tr }}</h2>
             </div>
-            <z-badge zType="outline" zShape="pill">{{ auditEvents().length }} events</z-badge>
+            <z-badge zType="outline" zShape="pill">{{ auditEvents().length }} {{ 'audit.events' | tr }}</z-badge>
           </div>
           @if (auditEvents().length) {
             <table z-table zType="bordered" zSize="compact" class="calibration-table">
               <thead z-table-header>
                 <tr z-table-row>
-                  <th z-table-head>Action</th>
-                  <th z-table-head>Entity</th>
-                  <th z-table-head>Summary</th>
-                  <th z-table-head>Actor</th>
-                  <th z-table-head>When</th>
+                  <th z-table-head>{{ 'audit.action' | tr }}</th>
+                  <th z-table-head>{{ 'audit.entity' | tr }}</th>
+                  <th z-table-head>{{ 'audit.summary' | tr }}</th>
+                  <th z-table-head>{{ 'audit.actor' | tr }}</th>
+                  <th z-table-head>{{ 'audit.when' | tr }}</th>
                 </tr>
               </thead>
               <tbody z-table-body>
@@ -116,7 +121,7 @@
               </tbody>
             </table>
           } @else {
-            <p class="admin-muted">No audit events yet. Changes made via mutations appear here.</p>
+            <p class="admin-muted">{{ 'audit.empty' | tr }}</p>
           }
         </article>
       </section>
@@ -126,26 +131,26 @@
           <article class="panel admin-detail-panel" style="grid-column: 1 / -1">
             <div class="panel-header">
               <div>
-                <span class="eyebrow">Organization analytics</span>
-                <h2>Coverage and priority gaps</h2>
+                <span class="eyebrow">{{ 'analytics.subtitle' | tr }}</span>
+                <h2>{{ 'analytics.coverageGaps' | tr }}</h2>
               </div>
-              <z-badge zType="secondary" zShape="pill">{{ summary.coveragePercent }}% covered</z-badge>
+              <z-badge zType="secondary" zShape="pill">{{ summary.coveragePercent }}% {{ 'analytics.covered' | tr }}</z-badge>
             </div>
 
             <div class="metrics" aria-label="Coverage metrics">
-              <article><span>Assessed</span><strong>{{ summary.assessedPeople }}/{{ summary.totalPeople }}</strong></article>
-              <article><span>Critical gaps</span><strong>{{ summary.criticalGapCount }}</strong></article>
+              <article><span>{{ 'analytics.assessed' | tr }}</span><strong>{{ summary.assessedPeople }}/{{ summary.totalPeople }}</strong></article>
+              <article><span>{{ 'analytics.criticalGaps' | tr }}</span><strong>{{ summary.criticalGapCount }}</strong></article>
             </div>
 
             @if (summary.byCompetency.length) {
               <table z-table zType="bordered" zSize="compact" class="calibration-table">
                 <thead z-table-header>
                   <tr z-table-row>
-                    <th z-table-head>Competency</th>
-                    <th z-table-head>Criticality</th>
-                    <th z-table-head>Assessed</th>
-                    <th z-table-head>Avg gap</th>
-                    <th z-table-head>Total gap</th>
+                    <th z-table-head>{{ 'analytics.competency' | tr }}</th>
+                    <th z-table-head>{{ 'analytics.criticality' | tr }}</th>
+                    <th z-table-head>{{ 'analytics.assessed' | tr }}</th>
+                    <th z-table-head>{{ 'analytics.avgGap' | tr }}</th>
+                    <th z-table-head>{{ 'analytics.totalGap' | tr }}</th>
                   </tr>
                 </thead>
                 <tbody z-table-body>
@@ -166,8 +171,8 @@
           </article>
         } @else {
           <article class="panel admin-empty">
-            <strong>Analytics not available</strong>
-            <span>Your current role does not have access to organization analytics. Switch to a manager/HR/methodology admin user in the top-right switcher.</span>
+            <strong>{{ 'analytics.noAccess.title' | tr }}</strong>
+            <span>{{ 'analytics.noAccess.body' | tr }}</span>
           </article>
         }
       </section>
@@ -410,19 +415,19 @@
     } @else if (data(); as vm) {
       <section class="metrics" aria-label="Dashboard metrics">
         <article>
-          <span>Active cycle</span>
+          <span>{{ 'dash.activeCycle' | tr }}</span>
           <strong>{{ vm.dashboard.activeCycleName }}</strong>
         </article>
         <article>
-          <span>Ontology domains</span>
+          <span>{{ 'dash.domains' | tr }}</span>
           <strong>{{ vm.dashboard.ontologyDomains }}</strong>
         </article>
         <article>
-          <span>Competencies</span>
+          <span>{{ 'dash.competencies' | tr }}</span>
           <strong>{{ vm.dashboard.competencies }}</strong>
         </article>
         <article>
-          <span>Coverage</span>
+          <span>{{ 'dash.coverage' | tr }}</span>
           <strong>{{ vm.dashboard.assessmentCoveragePercent }}%</strong>
         </article>
       </section>
@@ -431,10 +436,10 @@
         <article class="panel ontology-panel">
           <div class="panel-header">
             <div>
-              <span class="eyebrow">Ontology</span>
-              <h2>Organization-owned IT tree</h2>
+              <span class="eyebrow">{{ 'dash.ontology' | tr }}</span>
+              <h2>{{ 'dash.ontologyTree' | tr }}</h2>
             </div>
-            <z-badge zType="outline" zShape="pill">{{ vm.ontology.categories.length }} domains</z-badge>
+            <z-badge zType="outline" zShape="pill">{{ vm.ontology.categories.length }} {{ 'dash.domainsCount' | tr }}</z-badge>
           </div>
 
           <div class="ontology-list">
@@ -453,7 +458,7 @@
         <article class="panel profile-panel">
           <div class="panel-header">
             <div>
-              <span class="eyebrow">Role profile</span>
+              <span class="eyebrow">{{ 'dash.roleProfile' | tr }}</span>
               <h2>{{ vm.roleProfile.role.family.name }} / {{ vm.roleProfile.grade.name }}</h2>
             </div>
           </div>
@@ -476,7 +481,7 @@
         <article class="panel">
           <div class="panel-header">
             <div>
-              <span class="eyebrow">Matrix</span>
+              <span class="eyebrow">{{ 'dash.matrix' | tr }}</span>
               <h2>{{ vm.matrix.name }}</h2>
             </div>
             <z-badge zType="outline" zShape="pill">r{{ vm.matrix.activeRevision.version }}</z-badge>
@@ -503,7 +508,7 @@
         <article class="panel">
           <div class="panel-header">
             <div>
-              <span class="eyebrow">Assessment</span>
+              <span class="eyebrow">{{ 'dash.assessment' | tr }}</span>
               <h2>{{ vm.assessment.person.fullName }}</h2>
             </div>
             <z-badge zType="secondary" zShape="pill">{{ vm.assessment.status }}</z-badge>
@@ -537,10 +542,10 @@
         <article class="panel">
           <div class="panel-header">
             <div>
-              <span class="eyebrow">Gap</span>
-              <h2>Priority gaps</h2>
+              <span class="eyebrow">{{ 'dash.gap' | tr }}</span>
+              <h2>{{ 'dash.priorityGaps' | tr }}</h2>
             </div>
-            <z-badge zType="destructive" zShape="pill">{{ vm.dashboard.criticalGaps }} critical</z-badge>
+            <z-badge zType="destructive" zShape="pill">{{ vm.dashboard.criticalGaps }} {{ 'dash.criticalGaps' | tr }}</z-badge>
           </div>
 
           <div class="gap-list">
@@ -557,7 +562,7 @@
           </div>
         </article>
 
-        <z-card class="panel z-card-panel" zTitle="Plan items" zDescription="Development">
+        <z-card class="panel z-card-panel" zTitle="{{ 'dash.planItems' | tr }}" zDescription="{{ 'dash.development' | tr }}">
           <div class="plan-list">
             @for (item of vm.developmentPlan.items; track item.id) {
               <section>
@@ -571,8 +576,8 @@
       </section>
     } @else {
       <section class="loading">
-        <strong>Loading MVP slice</strong>
-        <span>Waiting for GraphQL API on /graphql</span>
+        <strong>{{ 'dash.loading' | tr }}</strong>
+        <span>{{ 'dash.waiting' | tr }}</span>
       </section>
     }
   </section>

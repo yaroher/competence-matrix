@@ -12,6 +12,8 @@ import {
   type RolesAdminQuery,
 } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { I18nService } from '../i18n/i18n.service';
+import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
 import { ZardButtonComponent } from '../shared/components/button';
 
@@ -20,39 +22,39 @@ type Profile = RolesAdminQuery['roleProfiles'][number];
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent],
+  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent, TrPipe],
   template: `
     <section class="section">
-      <header class="section-head"><div><span class="eyebrow">Job architecture</span><h2>Roles & profiles</h2></div></header>
+      <header class="section-head"><div><span class="eyebrow">{{ 'roles.subtitle' | tr }}</span><h2>{{ 'roles.title' | tr }}</h2></div></header>
 
       <div class="grid3">
         <article class="panel">
-          <h3>Role families</h3>
-          <div class="form-row"><input class="fld grow" [(ngModel)]="familyName" placeholder="New family" /><button z-button zType="secondary" zSize="sm" (click)="addFamily()" [disabled]="!familyName().trim()">Add</button></div>
+          <h3>{{ 'roles.families' | tr }}</h3>
+          <div class="form-row"><input class="fld grow" [(ngModel)]="familyName" placeholder="{{ 'roles.newFamily' | tr }}" /><button z-button zType="secondary" zSize="sm" (click)="addFamily()" [disabled]="!familyName().trim()">{{ 'common.add' | tr }}</button></div>
           @for (f of data()?.roleFamilies; track f.id) { <div class="item"><span>{{ f.name }}</span></div> }
         </article>
 
         <article class="panel">
-          <h3>Grades</h3>
-          <div class="form-row"><input class="fld" [(ngModel)]="gradeName" placeholder="Name" style="width:90px"/><input class="fld" type="number" [(ngModel)]="gradeRank" placeholder="rank" style="width:70px"/><button z-button zType="secondary" zSize="sm" (click)="addGrade()" [disabled]="!gradeName().trim()">Add</button></div>
-          @for (g of data()?.grades; track g.id) { <div class="item"><span>{{ g.name }}</span><z-badge zType="outline" zShape="pill">rank {{ g.rank }}</z-badge></div> }
+          <h3>{{ 'roles.grades' | tr }}</h3>
+          <div class="form-row"><input class="fld" [(ngModel)]="gradeName" placeholder="{{ 'common.name' | tr }}" style="width:90px"/><input class="fld" type="number" [(ngModel)]="gradeRank" placeholder="{{ 'roles.rank' | tr }}" style="width:70px"/><button z-button zType="secondary" zSize="sm" (click)="addGrade()" [disabled]="!gradeName().trim()">{{ 'common.add' | tr }}</button></div>
+          @for (g of data()?.grades; track g.id) { <div class="item"><span>{{ g.name }}</span><z-badge zType="outline" zShape="pill">{{ 'roles.rank' | tr }} {{ g.rank }}</z-badge></div> }
         </article>
 
         <article class="panel">
-          <h3>Roles</h3>
+          <h3>{{ 'roles.roles' | tr }}</h3>
           <div class="form-row">
             <select class="fld" [(ngModel)]="roleFamily">
               @for (f of data()?.roleFamilies; track f.id) { <option [value]="f.id">{{ f.name }}</option> }
             </select>
-            <input class="fld grow" [(ngModel)]="roleName" placeholder="Role name"/>
-            <button z-button zType="secondary" zSize="sm" (click)="addRole()" [disabled]="!roleName().trim()">Add</button>
+            <input class="fld grow" [(ngModel)]="roleName" placeholder="{{ 'roles.roleName' | tr }}"/>
+            <button z-button zType="secondary" zSize="sm" (click)="addRole()" [disabled]="!roleName().trim()">{{ 'common.add' | tr }}</button>
           </div>
           @for (r of data()?.roles; track r.id) { <div class="item"><span>{{ r.name }}</span><span class="muted">{{ r.family?.name }}</span></div> }
         </article>
       </div>
 
       <article class="panel">
-        <h3>Role profiles</h3>
+        <h3>{{ 'roles.profiles' | tr }}</h3>
         <div class="form-row">
           <select class="fld" [(ngModel)]="profileRole">
             @for (r of data()?.roles; track r.id) { <option [value]="r.id">{{ r.name }}</option> }
@@ -60,8 +62,8 @@ type Profile = RolesAdminQuery['roleProfiles'][number];
           <select class="fld" [(ngModel)]="profileGrade">
             @for (g of data()?.grades; track g.id) { <option [value]="g.id">{{ g.name }}</option> }
           </select>
-          <input class="fld grow" [(ngModel)]="profileName" placeholder="Profile name"/>
-          <button z-button zType="primary" zSize="sm" (click)="addProfile()" [disabled]="!profileName().trim()">Create profile</button>
+          <input class="fld grow" [(ngModel)]="profileName" placeholder="{{ 'roles.profileName' | tr }}"/>
+          <button z-button zType="primary" zSize="sm" (click)="addProfile()" [disabled]="!profileName().trim()">{{ 'roles.createProfile' | tr }}</button>
         </div>
 
         @for (p of profiles(); track p.id) {
@@ -71,12 +73,12 @@ type Profile = RolesAdminQuery['roleProfiles'][number];
               <span class="muted">{{ p.role?.name }} · {{ p.grade?.name }}</span>
             </div>
             <div class="task-row">
-              <input class="fld grow" [(ngModel)]="taskName" placeholder="task name"/>
-              <input class="fld grow" [(ngModel)]="taskOutcome" placeholder="expected outcome"/>
+              <input class="fld grow" [(ngModel)]="taskName" placeholder="{{ 'roles.taskName' | tr }}"/>
+              <input class="fld grow" [(ngModel)]="taskOutcome" placeholder="{{ 'roles.taskOutcome' | tr }}"/>
               <select class="fld" [(ngModel)]="taskCrit" style="width:110px">
                 <option value="high">high</option><option value="medium">medium</option><option value="low">low</option>
               </select>
-              <button z-button zType="ghost" zSize="sm" (click)="addTask(p.id)" [disabled]="!taskName().trim()">Add task</button>
+              <button z-button zType="ghost" zSize="sm" (click)="addTask(p.id)" [disabled]="!taskName().trim()">{{ 'common.add' | tr }}</button>
             </div>
             @for (t of p.tasks; track t.id) {
               <div class="task"><span>{{ t.name }}</span><span class="muted">{{ t.expectedOutcome }}</span><z-badge zType="outline" zShape="pill">{{ t.criticality }}</z-badge><button z-button zType="ghost" zSize="sm" (click)="removeTask(t.id)">×</button></div>
@@ -90,6 +92,7 @@ type Profile = RolesAdminQuery['roleProfiles'][number];
 })
 export class RolesComponent {
   private readonly api = inject(ApiService);
+  private readonly i18n = inject(I18nService);
   readonly data = toSignal(this.api.query(RolesAdminDocument), { initialValue: null });
   readonly profiles = computed<readonly Profile[]>(() => this.data()?.roleProfiles ?? []);
 

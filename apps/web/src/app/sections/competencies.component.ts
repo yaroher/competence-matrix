@@ -11,6 +11,8 @@ import {
   type OntologyAdminQuery,
 } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { I18nService } from '../i18n/i18n.service';
+import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
 import { ZardButtonComponent } from '../shared/components/button';
 
@@ -20,23 +22,23 @@ type Competency = Category['competencies'][number];
 @Component({
   selector: 'app-competencies',
   standalone: true,
-  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent],
+  imports: [FormsModule, ZardBadgeComponent, ZardButtonComponent, TrPipe],
   template: `
     <section class="section">
       <header class="section-head">
         <div>
-          <span class="eyebrow">Ontology</span>
-          <h2>Competencies</h2>
+          <span class="eyebrow">{{ 'comp.subtitle' | tr }}</span>
+          <h2>{{ 'comp.title' | tr }}</h2>
         </div>
-        <z-badge zType="outline" zShape="pill">{{ categories().length }} categories</z-badge>
+        <z-badge zType="outline" zShape="pill">{{ categories().length }} {{ 'comp.categories' | tr }}</z-badge>
       </header>
 
       <article class="panel">
-        <h3>Create category</h3>
+        <h3>{{ 'comp.createCategory' | tr }}</h3>
         <div class="form-row">
-          <input class="fld" [(ngModel)]="newCatName" placeholder="Category name" />
-          <input class="fld" [(ngModel)]="newCatType" placeholder="Type (domain, soft, ...)" />
-          <button z-button zType="primary" (click)="createCategory()" [disabled]="!newCatName().trim()">Add category</button>
+          <input class="fld" [(ngModel)]="newCatName" placeholder="{{ 'comp.categoryName' | tr }}" />
+          <input class="fld" [(ngModel)]="newCatType" placeholder="{{ 'comp.categoryType' | tr }}" />
+          <button z-button zType="primary" (click)="createCategory()" [disabled]="!newCatName().trim()">{{ 'comp.createCategory' | tr }}</button>
         </div>
       </article>
 
@@ -47,21 +49,21 @@ type Competency = Category['competencies'][number];
               <strong>{{ cat.name }}</strong>
               <span class="muted">{{ cat.categoryType }} · {{ cat.competencies.length }}</span>
             </div>
-            <button z-button zType="ghost" zSize="sm" (click)="removeCategory(cat.id)">Delete</button>
+            <button z-button zType="ghost" zSize="sm" (click)="removeCategory(cat.id)">{{ 'common.delete' | tr }}</button>
           </header>
 
           <div class="form-row compact">
-            <input class="fld" [(ngModel)]="compCode" placeholder="code (e.g. IT-X-1)" />
-            <input class="fld grow" [(ngModel)]="compName" placeholder="New competency name" />
+            <input class="fld" [(ngModel)]="compCode" placeholder="{{ 'comp.newCompCode' | tr }}" />
+            <input class="fld grow" [(ngModel)]="compName" placeholder="{{ 'comp.newCompName' | tr }}" />
             <button z-button zType="secondary" zSize="sm"
               (click)="createCompetency(cat.id)" [disabled]="!compCode().trim() || !compName().trim()">
-              Add
+              {{ 'common.add' | tr }}
             </button>
           </div>
 
           @if (cat.competencies.length) {
             <table class="crud-table">
-              <thead><tr><th>Code</th><th>Name</th><th>Status</th><th></th></tr></thead>
+              <thead><tr><th>{{ 'common.code' | tr }}</th><th>{{ 'common.name' | tr }}</th><th>{{ 'common.status' | tr }}</th><th></th></tr></thead>
               <tbody>
                 @for (comp of cat.competencies; track comp.id) {
                   <tr>
@@ -76,11 +78,11 @@ type Competency = Category['competencies'][number];
                     <td><z-badge zType="outline" zShape="pill">{{ comp.validationStatus }}</z-badge></td>
                     <td class="actions">
                       @if (editingId() === comp.id) {
-                        <button z-button zType="ghost" zSize="sm" (click)="saveEdit(comp)">Save</button>
-                        <button z-button zType="ghost" zSize="sm" (click)="cancelEdit()">Cancel</button>
+                        <button z-button zType="ghost" zSize="sm" (click)="saveEdit(comp)">{{ 'common.save' | tr }}</button>
+                        <button z-button zType="ghost" zSize="sm" (click)="cancelEdit()">{{ 'common.cancel' | tr }}</button>
                       } @else {
-                        <button z-button zType="ghost" zSize="sm" (click)="startEdit(comp)">Edit</button>
-                        <button z-button zType="ghost" zSize="sm" (click)="removeCompetency(comp.id)">Delete</button>
+                        <button z-button zType="ghost" zSize="sm" (click)="startEdit(comp)">{{ 'common.edit' | tr }}</button>
+                        <button z-button zType="ghost" zSize="sm" (click)="removeCompetency(comp.id)">{{ 'common.delete' | tr }}</button>
                       }
                     </td>
                   </tr>
@@ -88,12 +90,12 @@ type Competency = Category['competencies'][number];
               </tbody>
             </table>
           } @else {
-            <p class="muted">No competencies yet.</p>
+            <p class="muted">{{ 'comp.noComps' | tr }}</p>
           }
         </article>
       }
       @if (!categories().length) {
-        <p class="muted">Loading ontology…</p>
+        <p class="muted">{{ 'comp.loading' | tr }}</p>
       }
     </section>
   `,
@@ -120,6 +122,9 @@ type Competency = Category['competencies'][number];
 })
 export class CompetenciesComponent {
   private readonly api = inject(ApiService);
+  private readonly i18n = inject(I18nService);
+  readonly confirmCat = () => this.i18n.t('comp.deleteCategoryConfirm');
+  readonly confirmComp = () => this.i18n.t('comp.deleteCompConfirm');
   readonly data = toSignal(this.api.query(OntologyAdminDocument), { initialValue: null });
   readonly categories = computed<readonly Category[]>(() => this.data()?.ontology.categories ?? []);
 
@@ -141,7 +146,7 @@ export class CompetenciesComponent {
   }
 
   removeCategory(id: string) {
-    if (!confirm('Delete category?')) return;
+    if (!confirm(this.confirmCat())) return;
     this.api.mutate(DeleteCompetencyCategoryDocument, { id }).subscribe({ error: (e) => alert(e.message) });
   }
 
@@ -173,7 +178,7 @@ export class CompetenciesComponent {
   }
 
   removeCompetency(id: string) {
-    if (!confirm('Delete competency?')) return;
+    if (!confirm(this.confirmComp())) return;
     this.api.mutate(DeleteCompetencyDocument, { id }).subscribe({ error: (e) => alert(e.message) });
   }
 }
