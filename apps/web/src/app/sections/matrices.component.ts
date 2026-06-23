@@ -9,6 +9,7 @@ import {
   type MatricesAdminQuery,
 } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { ToastService } from '../toast.service';
 import { I18nService } from '../i18n/i18n.service';
 import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
@@ -71,6 +72,7 @@ type Matrix = MatricesAdminQuery['matrices'][number];
 })
 export class MatricesComponent {
   private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
   readonly data = toSignal(this.api.query(MatricesAdminDocument), { initialValue: null });
   readonly matrices = computed<readonly Matrix[]>(() => this.data()?.matrices ?? []);
@@ -79,7 +81,7 @@ export class MatricesComponent {
   readonly newProfile = signal(''); readonly newName = signal('');
   readonly reqComp = signal(''); readonly reqLevel = signal(3); readonly reqWeight = signal(0.05); readonly reqCrit = signal('medium');
 
-  create() { const n = this.newName().trim(); if (!n) return; this.api.mutate(CreateMatrixDocument, { input: { roleProfileId: this.newProfile(), name: n } }).subscribe({ next: () => this.newName.set(''), error: (e) => alert(e.message) }); }
-  addReq(m: Matrix) { if (!this.reqComp() || !m.activeRevision) return; this.api.mutate(UpsertMatrixRequirementDocument, { input: { revisionId: m.activeRevision.id, competencyId: this.reqComp(), targetLevel: Number(this.reqLevel()), normalizedWeight: Number(this.reqWeight()), criticality: this.reqCrit(), neededOnEntry: false } }).subscribe({ error: (e) => alert(e.message) }); }
-  removeReq(id: string) { this.api.mutate(DeleteMatrixRequirementDocument, { id }).subscribe({ error: (e) => alert(e.message) }); }
+  create() { const n = this.newName().trim(); if (!n) return; this.api.mutate(CreateMatrixDocument, { input: { roleProfileId: this.newProfile(), name: n } }).subscribe({ next: () => this.newName.set(''), error: (e) => this.toast.error(e.message) }); }
+  addReq(m: Matrix) { if (!this.reqComp() || !m.activeRevision) return; this.api.mutate(UpsertMatrixRequirementDocument, { input: { revisionId: m.activeRevision.id, competencyId: this.reqComp(), targetLevel: Number(this.reqLevel()), normalizedWeight: Number(this.reqWeight()), criticality: this.reqCrit(), neededOnEntry: false } }).subscribe({ error: (e) => this.toast.error(e.message) }); }
+  removeReq(id: string) { this.api.mutate(DeleteMatrixRequirementDocument, { id }).subscribe({ error: (e) => this.toast.error(e.message) }); }
 }

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AddCalibrationDecisionDocument, CalibrationSessionsDetailedDocument, CloseCalibrationSessionDocument, CreateCalibrationSessionDocument, DeleteCalibrationDecisionDocument, type CalibrationSessionsDetailedQuery } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { ToastService } from '../toast.service';
 import { I18nService } from '../i18n/i18n.service';
 import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
@@ -47,13 +48,14 @@ type Session = CalibrationSessionsDetailedQuery['calibrationSessions'][number];
 })
 export class CalibrationSectionComponent {
   private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
   readonly data = toSignal(this.api.query(CalibrationSessionsDetailedDocument), { initialValue: null });
   readonly sessions = computed<readonly Session[]>(() => this.data()?.calibrationSessions ?? []);
   readonly newSession = signal('');
   readonly scoreId = signal(''); readonly origLevel = signal(3); readonly calLevel = signal(4); readonly reason = signal('');
-  createSession() { const n = this.newSession().trim(); if (!n) return; this.api.mutate(CreateCalibrationSessionDocument, { input: { organizationId: 'org-demo', name: n } }).subscribe({ next: () => this.newSession.set(''), error: (e) => alert(e.message) }); }
-  close(id: string) { this.api.mutate(CloseCalibrationSessionDocument, { id }).subscribe({ error: (e) => alert(e.message) }); }
-  addDecision(sessionId: string) { if (!this.scoreId()) return; this.api.mutate(AddCalibrationDecisionDocument, { input: { sessionId, assessmentScoreId: this.scoreId(), originalLevel: Number(this.origLevel()), calibratedLevel: Number(this.calLevel()), reason: this.reason() } }).subscribe({ next: () => this.reason.set(''), error: (e) => alert(e.message) }); }
-  remove(id: string) { this.api.mutate(DeleteCalibrationDecisionDocument, { id }).subscribe({ error: (e) => alert(e.message) }); }
+  createSession() { const n = this.newSession().trim(); if (!n) return; this.api.mutate(CreateCalibrationSessionDocument, { input: { organizationId: 'org-demo', name: n } }).subscribe({ next: () => this.newSession.set(''), error: (e) => this.toast.error(e.message) }); }
+  close(id: string) { this.api.mutate(CloseCalibrationSessionDocument, { id }).subscribe({ error: (e) => this.toast.error(e.message) }); }
+  addDecision(sessionId: string) { if (!this.scoreId()) return; this.api.mutate(AddCalibrationDecisionDocument, { input: { sessionId, assessmentScoreId: this.scoreId(), originalLevel: Number(this.origLevel()), calibratedLevel: Number(this.calLevel()), reason: this.reason() } }).subscribe({ next: () => this.reason.set(''), error: (e) => this.toast.error(e.message) }); }
+  remove(id: string) { this.api.mutate(DeleteCalibrationDecisionDocument, { id }).subscribe({ error: (e) => this.toast.error(e.message) }); }
 }

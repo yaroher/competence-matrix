@@ -10,6 +10,7 @@ import { DevelopmentComponent } from './sections/development.component';
 import { CalibrationSectionComponent } from './sections/calibration.component';
 import { MethodologySectionComponent } from './sections/methodology.component';
 import { AdminSectionComponent } from './sections/admin.component';
+import { ToastsComponent } from './toasts.component';
 import { I18nService } from './i18n/i18n.service';
 import { TrPipe } from './i18n/tr.pipe';
 import { ZardBadgeComponent } from './shared/components/badge';
@@ -55,6 +56,7 @@ interface OrgUnitNode extends OrgUnit {
     MethodologySectionComponent,
     AdminSectionComponent,
     TrPipe,
+    ToastsComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

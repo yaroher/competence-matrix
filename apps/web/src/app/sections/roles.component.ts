@@ -12,6 +12,7 @@ import {
   type RolesAdminQuery,
 } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { ToastService } from '../toast.service';
 import { I18nService } from '../i18n/i18n.service';
 import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
@@ -92,6 +93,7 @@ type Profile = RolesAdminQuery['roleProfiles'][number];
 })
 export class RolesComponent {
   private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
   readonly data = toSignal(this.api.query(RolesAdminDocument), { initialValue: null });
   readonly profiles = computed<readonly Profile[]>(() => this.data()?.roleProfiles ?? []);
@@ -102,10 +104,10 @@ export class RolesComponent {
   readonly profileRole = signal(''); readonly profileGrade = signal(''); readonly profileName = signal('');
   readonly taskName = signal(''); readonly taskOutcome = signal(''); readonly taskCrit = signal('medium');
 
-  addFamily() { const n = this.familyName().trim(); if (!n) return; this.api.mutate(CreateRoleFamilyDocument, { input: { organizationId: 'org-demo', name: n } }).subscribe({ next: () => this.familyName.set(''), error: (e) => alert(e.message) }); }
-  addGrade() { const n = this.gradeName().trim(); if (!n) return; this.api.mutate(CreateGradeDocument, { input: { organizationId: 'org-demo', name: n, rank: Number(this.gradeRank()) } }).subscribe({ next: () => this.gradeName.set(''), error: (e) => alert(e.message) }); }
-  addRole() { const n = this.roleName().trim(); if (!n || !this.roleFamily()) return; this.api.mutate(CreateRoleDocument, { input: { roleFamilyId: this.roleFamily(), name: n } }).subscribe({ next: () => this.roleName.set(''), error: (e) => alert(e.message) }); }
-  addProfile() { const n = this.profileName().trim(); if (!n) return; this.api.mutate(CreateRoleProfileDocument, { input: { roleId: this.profileRole(), gradeId: this.profileGrade(), name: n, description: '' } }).subscribe({ next: () => this.profileName.set(''), error: (e) => alert(e.message) }); }
-  addTask(profileId: string) { const n = this.taskName().trim(); if (!n) return; this.api.mutate(CreateRoleTaskDocument, { input: { roleProfileId: profileId, name: n, expectedOutcome: this.taskOutcome() || n, criticality: this.taskCrit() } }).subscribe({ next: () => { this.taskName.set(''); this.taskOutcome.set(''); }, error: (e) => alert(e.message) }); }
-  removeTask(id: string) { this.api.mutate(DeleteRoleTaskDocument, { id }).subscribe({ error: (e) => alert(e.message) }); }
+  addFamily() { const n = this.familyName().trim(); if (!n) return; this.api.mutate(CreateRoleFamilyDocument, { input: { organizationId: 'org-demo', name: n } }).subscribe({ next: () => this.familyName.set(''), error: (e) => this.toast.error(e.message) }); }
+  addGrade() { const n = this.gradeName().trim(); if (!n) return; this.api.mutate(CreateGradeDocument, { input: { organizationId: 'org-demo', name: n, rank: Number(this.gradeRank()) } }).subscribe({ next: () => this.gradeName.set(''), error: (e) => this.toast.error(e.message) }); }
+  addRole() { const n = this.roleName().trim(); if (!n || !this.roleFamily()) return; this.api.mutate(CreateRoleDocument, { input: { roleFamilyId: this.roleFamily(), name: n } }).subscribe({ next: () => this.roleName.set(''), error: (e) => this.toast.error(e.message) }); }
+  addProfile() { const n = this.profileName().trim(); if (!n) return; this.api.mutate(CreateRoleProfileDocument, { input: { roleId: this.profileRole(), gradeId: this.profileGrade(), name: n, description: '' } }).subscribe({ next: () => this.profileName.set(''), error: (e) => this.toast.error(e.message) }); }
+  addTask(profileId: string) { const n = this.taskName().trim(); if (!n) return; this.api.mutate(CreateRoleTaskDocument, { input: { roleProfileId: profileId, name: n, expectedOutcome: this.taskOutcome() || n, criticality: this.taskCrit() } }).subscribe({ next: () => { this.taskName.set(''); this.taskOutcome.set(''); }, error: (e) => this.toast.error(e.message) }); }
+  removeTask(id: string) { this.api.mutate(DeleteRoleTaskDocument, { id }).subscribe({ error: (e) => this.toast.error(e.message) }); }
 }

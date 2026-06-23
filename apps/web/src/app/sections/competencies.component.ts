@@ -11,6 +11,7 @@ import {
   type OntologyAdminQuery,
 } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { ToastService } from '../toast.service';
 import { I18nService } from '../i18n/i18n.service';
 import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
@@ -122,6 +123,7 @@ type Competency = Category['competencies'][number];
 })
 export class CompetenciesComponent {
   private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
   readonly confirmCat = () => this.i18n.t('comp.deleteCategoryConfirm');
   readonly confirmComp = () => this.i18n.t('comp.deleteCompConfirm');
@@ -142,12 +144,12 @@ export class CompetenciesComponent {
       .mutate(CreateCompetencyCategoryDocument, {
         input: { organizationId: 'org-demo', categoryType: this.newCatType().trim() || 'domain', name, description: '' },
       })
-      .subscribe({ next: () => { this.newCatName.set(''); }, error: (e) => alert(e.message) });
+      .subscribe({ next: () => { this.newCatName.set(''); }, error: (e) => this.toast.error(e.message) });
   }
 
   removeCategory(id: string) {
     if (!confirm(this.confirmCat())) return;
-    this.api.mutate(DeleteCompetencyCategoryDocument, { id }).subscribe({ error: (e) => alert(e.message) });
+    this.api.mutate(DeleteCompetencyCategoryDocument, { id }).subscribe({ error: (e) => this.toast.error(e.message) });
   }
 
   createCompetency(categoryId: string) {
@@ -158,7 +160,7 @@ export class CompetenciesComponent {
       .mutate(CreateCompetencyDocument, {
         input: { organizationId: 'org-demo', categoryId, code, name, description: '', tags: [] },
       })
-      .subscribe({ next: () => { this.compCode.set(''); this.compName.set(''); }, error: (e) => alert(e.message) });
+      .subscribe({ next: () => { this.compCode.set(''); this.compName.set(''); }, error: (e) => this.toast.error(e.message) });
   }
 
   startEdit(comp: Competency) {
@@ -174,11 +176,11 @@ export class CompetenciesComponent {
     if (!name) { this.cancelEdit(); return; }
     this.api
       .mutate(UpdateCompetencyDocument, { input: { id: comp.id, name } })
-      .subscribe({ next: () => this.cancelEdit(), error: (e) => alert(e.message) });
+      .subscribe({ next: () => this.cancelEdit(), error: (e) => this.toast.error(e.message) });
   }
 
   removeCompetency(id: string) {
     if (!confirm(this.confirmComp())) return;
-    this.api.mutate(DeleteCompetencyDocument, { id }).subscribe({ error: (e) => alert(e.message) });
+    this.api.mutate(DeleteCompetencyDocument, { id }).subscribe({ error: (e) => this.toast.error(e.message) });
   }
 }

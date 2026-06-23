@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CreateLevelScaleDocument, CreateScoringRuleOpDocument, LevelScalesDetailedDocument, ScoringRulesListDocument, SetDefaultScoringRuleDocument, UpsertLevelDimensionDescriptorDocument, type LevelScalesDetailedQuery, type ScoringRulesListQuery } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { ToastService } from '../toast.service';
 import { I18nService } from '../i18n/i18n.service';
 import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
@@ -47,6 +48,7 @@ import { ZardButtonComponent } from '../shared/components/button';
 })
 export class MethodologySectionComponent {
   private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
   readonly scalesData = toSignal(this.api.query(LevelScalesDetailedDocument), { initialValue: null });
   readonly rulesData = toSignal(this.api.query(ScoringRulesListDocument), { initialValue: null });
@@ -54,8 +56,8 @@ export class MethodologySectionComponent {
   readonly rules = computed<readonly ScoringRulesListQuery['scoringRules'][number][]>(() => this.rulesData()?.scoringRules ?? []);
   readonly newScale = signal(''); readonly dimLevel = signal(3); readonly dimName = signal('autonomy'); readonly dimDesc = signal('');
   readonly ruleName = signal(''); readonly ruleConf = signal(0.7);
-  addScale() { const n = this.newScale().trim(); if (!n) return; this.api.mutate(CreateLevelScaleDocument, { input: { organizationId: 'org-demo', name: n } }).subscribe({ next: () => this.newScale.set(''), error: (e) => alert(e.message) }); }
-  addDim(scaleId: string) { const d = this.dimDesc().trim(); if (!d) return; this.api.mutate(UpsertLevelDimensionDescriptorDocument, { input: { scaleId, levelValue: Number(this.dimLevel()), dimension: this.dimName(), description: d } }).subscribe({ next: () => this.dimDesc.set(''), error: (e) => alert(e.message) }); }
-  addRule() { const n = this.ruleName().trim(); if (!n) return; this.api.mutate(CreateScoringRuleOpDocument, { input: { organizationId: 'org-demo', name: n, confidenceThreshold: Number(this.ruleConf()) } }).subscribe({ next: () => this.ruleName.set(''), error: (e) => alert(e.message) }); }
-  setDefault(id: string) { this.api.mutate(SetDefaultScoringRuleDocument, { id }).subscribe({ error: (e) => alert(e.message) }); }
+  addScale() { const n = this.newScale().trim(); if (!n) return; this.api.mutate(CreateLevelScaleDocument, { input: { organizationId: 'org-demo', name: n } }).subscribe({ next: () => this.newScale.set(''), error: (e) => this.toast.error(e.message) }); }
+  addDim(scaleId: string) { const d = this.dimDesc().trim(); if (!d) return; this.api.mutate(UpsertLevelDimensionDescriptorDocument, { input: { scaleId, levelValue: Number(this.dimLevel()), dimension: this.dimName(), description: d } }).subscribe({ next: () => this.dimDesc.set(''), error: (e) => this.toast.error(e.message) }); }
+  addRule() { const n = this.ruleName().trim(); if (!n) return; this.api.mutate(CreateScoringRuleOpDocument, { input: { organizationId: 'org-demo', name: n, confidenceThreshold: Number(this.ruleConf()) } }).subscribe({ next: () => this.ruleName.set(''), error: (e) => this.toast.error(e.message) }); }
+  setDefault(id: string) { this.api.mutate(SetDefaultScoringRuleDocument, { id }).subscribe({ error: (e) => this.toast.error(e.message) }); }
 }

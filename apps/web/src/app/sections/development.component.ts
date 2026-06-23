@@ -4,6 +4,7 @@ import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 import { DevelopmentAdminDocument, UpdateDevelopmentPlanItemDocument } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { ToastService } from '../toast.service';
 import { I18nService } from '../i18n/i18n.service';
 import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
@@ -49,12 +50,13 @@ import { ZardButtonComponent } from '../shared/components/button';
 })
 export class DevelopmentComponent {
   private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
   readonly assessmentId = signal('assessment-alexey-backend-go-senior');
   readonly data = toSignal(toObservable(this.assessmentId).pipe(switchMap((id) => this.api.query(DevelopmentAdminDocument, { assessmentId: id }))), { initialValue: null });
   readonly assessments = computed(() => this.data()?.assessments ?? []);
   readonly plan = computed(() => this.data()?.developmentPlan ?? null);
   update(id: string, status: string, dueDate: string) {
-    this.api.mutate(UpdateDevelopmentPlanItemDocument, { input: { id, status, dueDate } }).subscribe({ error: (e) => alert(e.message) });
+    this.api.mutate(UpdateDevelopmentPlanItemDocument, { input: { id, status, dueDate } }).subscribe({ error: (e) => this.toast.error(e.message) });
   }
 }

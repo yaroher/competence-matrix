@@ -9,6 +9,7 @@ import {
   type AssessmentsAdminQuery,
 } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { ToastService } from '../toast.service';
 import { I18nService } from '../i18n/i18n.service';
 import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
@@ -63,6 +64,7 @@ type Score = Assessment['scores'][number];
 })
 export class AssessmentsComponent {
   private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
   readonly data = toSignal(this.api.query(AssessmentsAdminDocument), { initialValue: null });
   readonly assessments = computed<readonly Assessment[]>(() => this.data()?.assessments ?? []);
@@ -71,7 +73,7 @@ export class AssessmentsComponent {
   readonly newPerson = signal(''); readonly newProfile = signal(''); readonly newRevision = signal('');
   readonly scoreComp = signal<string | null>(null); readonly scoreSource = signal('self'); readonly scoreLevel = signal(3);
 
-  create() { this.api.mutate(CreateAssessmentDocument, { input: { personId: this.newPerson(), roleProfileId: this.newProfile(), matrixRevisionId: this.newRevision() } }).subscribe({ error: (e) => alert(e.message) }); }
-  saveScore(a: Assessment) { const c = this.scoreComp(); if (!c) return; this.api.mutate(UpsertAssessmentScoreDocument, { input: { assessmentId: a.id, competencyId: c, source: this.scoreSource(), level: Number(this.scoreLevel()), confidence: 0.7, verificationStatus: 'unverified', comment: '' } }).subscribe({ error: (e) => alert(e.message) }); }
-  finalize(id: string) { if (!confirm(this.i18n.t('assess.finalizeConfirm'))) return; this.api.mutate(FinalizeAssessmentAdminDocument, { id }).subscribe({ error: (e) => alert(e.message) }); }
+  create() { this.api.mutate(CreateAssessmentDocument, { input: { personId: this.newPerson(), roleProfileId: this.newProfile(), matrixRevisionId: this.newRevision() } }).subscribe({ error: (e) => this.toast.error(e.message) }); }
+  saveScore(a: Assessment) { const c = this.scoreComp(); if (!c) return; this.api.mutate(UpsertAssessmentScoreDocument, { input: { assessmentId: a.id, competencyId: c, source: this.scoreSource(), level: Number(this.scoreLevel()), confidence: 0.7, verificationStatus: 'unverified', comment: '' } }).subscribe({ error: (e) => this.toast.error(e.message) }); }
+  finalize(id: string) { if (!confirm(this.i18n.t('assess.finalizeConfirm'))) return; this.api.mutate(FinalizeAssessmentAdminDocument, { id }).subscribe({ error: (e) => this.toast.error(e.message) }); }
 }

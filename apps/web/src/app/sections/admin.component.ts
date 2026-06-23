@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { PeopleAssignmentsDocument, type PeopleAssignmentsQuery } from '@comatrix/api-contracts';
 import { CreateAssignmentOpDocument, CreateOrgUnitOpDocument, CreatePersonDocument, UpdatePersonOpDocument } from '@comatrix/api-contracts';
 import { ApiService } from '../api.service';
+import { ToastService } from '../toast.service';
 import { I18nService } from '../i18n/i18n.service';
 import { TrPipe } from '../i18n/tr.pipe';
 import { ZardBadgeComponent } from '../shared/components/badge';
@@ -52,6 +53,7 @@ import { ZardButtonComponent } from '../shared/components/button';
 })
 export class AdminSectionComponent {
   private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
   private readonly i18n = inject(I18nService);
   readonly data = toSignal(this.api.query(PeopleAssignmentsDocument), { initialValue: null });
   readonly people = computed<readonly PeopleAssignmentsQuery['people'][number][]>(() => this.data()?.people ?? []);
@@ -61,8 +63,8 @@ export class AdminSectionComponent {
   readonly unitParent = signal<string | null>(null); readonly unitType = signal('team'); readonly unitName = signal('');
   readonly asgPerson = signal(''); readonly asgUnit = signal(''); readonly asgFrom = signal(new Date().toISOString().slice(0, 10));
 
-  addPerson() { this.api.mutate(CreatePersonDocument, { input: { fullName: this.personName(), email: this.personEmail() } }).subscribe({ next: () => { this.personName.set(''); this.personEmail.set(''); }, error: (e) => alert(e.message) }); }
-  updateStatus(id: string, status: string) { this.api.mutate(UpdatePersonOpDocument, { input: { id, status } }).subscribe({ error: (e) => alert(e.message) }); }
-  addUnit() { this.api.mutate(CreateOrgUnitOpDocument, { input: { organizationId: 'org-demo', parentId: this.unitParent(), type: this.unitType(), name: this.unitName() } }).subscribe({ next: () => this.unitName.set(''), error: (e) => alert(e.message) }); }
-  addAsg() { this.api.mutate(CreateAssignmentOpDocument, { input: { personId: this.asgPerson(), orgUnitId: this.asgUnit(), roleProfileId: 'profile-backend-go-senior', effectiveFrom: this.asgFrom() } }).subscribe({ next: () => { this.asgPerson.set(''); this.asgUnit.set(''); }, error: (e) => alert(e.message) }); }
+  addPerson() { this.api.mutate(CreatePersonDocument, { input: { fullName: this.personName(), email: this.personEmail() } }).subscribe({ next: () => { this.personName.set(''); this.personEmail.set(''); }, error: (e) => this.toast.error(e.message) }); }
+  updateStatus(id: string, status: string) { this.api.mutate(UpdatePersonOpDocument, { input: { id, status } }).subscribe({ error: (e) => this.toast.error(e.message) }); }
+  addUnit() { this.api.mutate(CreateOrgUnitOpDocument, { input: { organizationId: 'org-demo', parentId: this.unitParent(), type: this.unitType(), name: this.unitName() } }).subscribe({ next: () => this.unitName.set(''), error: (e) => this.toast.error(e.message) }); }
+  addAsg() { this.api.mutate(CreateAssignmentOpDocument, { input: { personId: this.asgPerson(), orgUnitId: this.asgUnit(), roleProfileId: 'profile-backend-go-senior', effectiveFrom: this.asgFrom() } }).subscribe({ next: () => { this.asgPerson.set(''); this.asgUnit.set(''); }, error: (e) => this.toast.error(e.message) }); }
 }
