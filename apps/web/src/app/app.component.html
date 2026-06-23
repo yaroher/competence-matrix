@@ -1,3 +1,20 @@
+@if (!loggedIn()) {
+  <main class="login-shell">
+    <section class="login-card">
+      <span class="brand-mark login-mark">CM</span>
+      <strong>Competence Matrix</strong>
+      <span class="muted">Sign in to continue (dev personas)</span>
+
+      <select class="login-select" [value]="loginUserId()" (change)="loginUserId.set($any($event.target).value)">
+        @for (persona of personas; track persona.id) {
+          <option [value]="persona.id">{{ persona.label }}</option>
+        }
+      </select>
+
+      <button z-button zType="primary" zFull type="button" (click)="doLogin()">Sign in</button>
+    </section>
+  </main>
+} @else {
 <main class="shell">
   <aside class="sidebar">
     <div class="brand">
@@ -45,10 +62,13 @@
           <z-badge zType="outline" zShape="pill">{{ assignment.roleProfile.name }}</z-badge>
         }
         <z-badge zType="outline" zShape="pill">{{ orgUnitCount() }} org units</z-badge>
+        <button z-button zType="ghost" zSize="sm" type="button" (click)="doLogout()">Sign out</button>
       </div>
     </header>
 
-    @if (selectedNav() === 'Audit') {
+    @if (selectedNav() === 'Competencies') {
+      <app-competencies />
+    } @else if (selectedNav() === 'Audit') {
       <section class="admin-grid" aria-label="Audit trail">
         <article class="panel admin-detail-panel" style="grid-column: 1 / -1">
           <div class="panel-header">
@@ -543,3 +563,4 @@
     }
   </section>
 </main>
+}

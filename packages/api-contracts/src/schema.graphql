@@ -24,12 +24,181 @@ type Query {
 
 type Mutation {
   createPerson(input: CreatePersonInput!): Person!
+  updatePerson(input: UpdatePersonInput!): Person!
   createAssignment(input: CreateAssignmentInput!): Assignment!
   archiveAssignment(id: ID!): Assignment!
   setDefaultScoringRule(id: ID!): ScoringRule!
   importCompetencies(input: [CompetencyImportInput!]!): ImportValidationReport!
   finalizeAssessment(id: ID!): Assessment!
   activateMatrix(id: ID!): Matrix!
+
+  createOrgUnit(input: OrgUnitInput!): OrgUnit!
+  updateOrgUnit(input: UpdateOrgUnitInput!): OrgUnit!
+
+  createCompetencyCategory(input: CompetencyCategoryInput!): CompetencyCategory!
+  updateCompetencyCategory(input: UpdateCompetencyCategoryInput!): CompetencyCategory!
+  deleteCompetencyCategory(id: ID!): Boolean!
+  createCompetency(input: CompetencyInput!): Competency!
+  updateCompetency(input: UpdateCompetencyInput!): Competency!
+  deleteCompetency(id: ID!): Boolean!
+
+  createRoleFamily(input: NameInput!): RoleFamily!
+  createRole(input: RoleInput!): Role!
+  createGrade(input: GradeInput!): Grade!
+  createRoleProfile(input: RoleProfileInput!): RoleProfile!
+  createRoleTask(input: RoleTaskInput!): RoleTask!
+  deleteRoleTask(id: ID!): Boolean!
+
+  createMatrix(input: MatrixInput!): Matrix!
+  upsertMatrixRequirement(input: MatrixRequirementInput!): MatrixRequirement!
+  deleteMatrixRequirement(id: ID!): Boolean!
+
+  createAssessment(input: CreateAssessmentInput!): Assessment!
+  upsertAssessmentScore(input: AssessmentScoreInput!): AssessmentScore!
+
+  createCalibrationSession(input: NameInput!): CalibrationSession!
+  closeCalibrationSession(id: ID!): CalibrationSession!
+  addCalibrationDecision(input: CalibrationDecisionInput!): CalibrationDecision!
+  deleteCalibrationDecision(id: ID!): Boolean!
+
+  createLevelScale(input: NameInput!): LevelScale!
+  upsertLevelDimensionDescriptor(input: LevelDimensionDescriptorInput!): LevelDimensionDescriptor!
+  createScoringRule(input: ScoringRuleInput!): ScoringRule!
+}
+
+input UpdatePersonInput {
+  id: ID!
+  fullName: String
+  email: String
+  status: String
+}
+
+input OrgUnitInput {
+  organizationId: ID!
+  parentId: ID
+  type: String!
+  name: String!
+}
+
+input UpdateOrgUnitInput {
+  id: ID!
+  parentId: ID
+  name: String
+  type: String
+  status: String
+}
+
+input CompetencyCategoryInput {
+  organizationId: ID!
+  parentId: ID
+  categoryType: String!
+  name: String!
+  description: String
+}
+
+input UpdateCompetencyCategoryInput {
+  id: ID!
+  name: String
+  description: String
+  categoryType: String
+}
+
+input CompetencyInput {
+  organizationId: ID!
+  categoryId: ID!
+  code: String!
+  name: String!
+  description: String
+  tags: [String!]
+}
+
+input UpdateCompetencyInput {
+  id: ID!
+  name: String
+  description: String
+  categoryId: ID
+  tags: [String!]
+}
+
+input NameInput {
+  organizationId: ID!
+  name: String!
+}
+
+input RoleInput {
+  roleFamilyId: ID!
+  name: String!
+}
+
+input GradeInput {
+  organizationId: ID!
+  name: String!
+  rank: Int!
+}
+
+input RoleProfileInput {
+  roleId: ID!
+  gradeId: ID!
+  name: String!
+  description: String
+}
+
+input RoleTaskInput {
+  roleProfileId: ID!
+  name: String!
+  expectedOutcome: String!
+  criticality: String!
+}
+
+input MatrixInput {
+  roleProfileId: ID!
+  name: String!
+}
+
+input MatrixRequirementInput {
+  revisionId: ID!
+  competencyId: ID!
+  targetLevel: Int!
+  normalizedWeight: Float!
+  criticality: String!
+  neededOnEntry: Boolean
+}
+
+input CreateAssessmentInput {
+  personId: ID!
+  roleProfileId: ID!
+  matrixRevisionId: ID!
+}
+
+input AssessmentScoreInput {
+  assessmentId: ID!
+  competencyId: ID!
+  source: String!
+  level: Int!
+  confidence: Float
+  verificationStatus: String
+  comment: String
+}
+
+input CalibrationDecisionInput {
+  sessionId: ID!
+  assessmentScoreId: ID!
+  originalLevel: Int!
+  calibratedLevel: Int!
+  reason: String
+}
+
+input LevelDimensionDescriptorInput {
+  scaleId: ID!
+  levelValue: Int!
+  dimension: String!
+  description: String!
+}
+
+input ScoringRuleInput {
+  organizationId: ID!
+  name: String!
+  confidenceThreshold: Float
 }
 
 input CreatePersonInput {

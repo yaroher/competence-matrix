@@ -2,6 +2,7 @@ import { DecimalPipe, NgClass } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ApiService, DEV_PERSONAS, GapVm, MatrixRequirementVm, PeopleAssignmentsVm, ScoreVm, activeUserId } from './api.service';
+import { CompetenciesComponent } from './sections/competencies.component';
 import { ZardBadgeComponent } from './shared/components/badge';
 import { ZardButtonComponent } from './shared/components/button';
 import { ZardCardComponent } from './shared/components/card';
@@ -36,6 +37,7 @@ interface OrgUnitNode extends OrgUnit {
     ZardTableHeadComponent,
     ZardTableHeaderComponent,
     ZardTableRowComponent,
+    CompetenciesComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -43,8 +45,10 @@ interface OrgUnitNode extends OrgUnit {
 export class AppComponent {
   private readonly api = inject(ApiService);
   readonly selectedNav = signal('Dashboard');
+  readonly loggedIn = signal(false);
+  readonly loginUserId = signal(activeUserId());
   readonly data = toSignal(this.api.loadMvpData());
-  readonly people = toSignal(this.api.loadPeopleAssignments());
+  readonly people = toSignal(this.api.peopleData$);
 
   readonly actorAssignment = computed(() => this.people()?.currentActor?.person?.currentAssignment ?? null);
   readonly orgUnitCount = computed(() => this.people()?.orgUnits?.length ?? 0);
@@ -54,7 +58,7 @@ export class AppComponent {
   readonly levelScales = computed(() => this.people()?.levelScales ?? []);
   readonly scoringRules = computed(() => this.people()?.scoringRules ?? []);
   readonly defaultScoringRule = computed(() => this.scoringRules().find((rule) => rule.isDefault) ?? null);
-  readonly orgGapSummary = toSignal(this.api.loadOrganizationGapSummary());
+  readonly orgGapSummary = toSignal(this.api.gapSummary$);
   readonly auditEvents = computed(() => this.people()?.auditEvents ?? []);
   readonly actor = computed(() => this.people()?.currentActor ?? null);
   readonly personas = DEV_PERSONAS;
@@ -63,6 +67,16 @@ export class AppComponent {
   switchUser(id: string) {
     this.api.setActiveUser(id);
     location.reload();
+  }
+
+  doLogin() {
+    this.api.setActiveUser(this.loginUserId());
+    this.loggedIn.set(true);
+    this.api.refresh();
+  }
+
+  doLogout() {
+    this.loggedIn.set(false);
   }
   readonly selectedAdminPersonId = signal<string | null>(null);
   readonly selectedAdminPerson = computed(() => {

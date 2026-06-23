@@ -355,6 +355,363 @@ export function createExecutableSchema(seed: MvpSeed = mvpSeed, provider: AuthPr
           });
           return matrix;
         },
+
+        updatePerson: (_parent, args: { input: { id: string; fullName?: string | null; email?: string | null; status?: string | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'person.write');
+          const person = findPerson(args.input.id);
+          if (!person) throw new Error(`Unknown person ${args.input.id}`);
+          requireSameOrg(ctx, person.organizationId);
+          if (args.input.fullName != null) person.fullName = args.input.fullName;
+          if (args.input.email != null) person.email = args.input.email;
+          if (args.input.status != null) person.status = args.input.status as never;
+          return person;
+        },
+
+        createOrgUnit: (_parent, args: { input: { organizationId: string; parentId?: string | null; type: string; name: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'person.write');
+          requireSameOrg(ctx, args.input.organizationId);
+          const unit = {
+            id: `unit-${Date.now()}`,
+            organizationId: args.input.organizationId,
+            parentId: args.input.parentId ?? undefined,
+            type: args.input.type as 'company' | 'department' | 'team',
+            name: args.input.name,
+            status: 'active' as const,
+          };
+          seed.orgUnits.push(unit);
+          return unit;
+        },
+        updateOrgUnit: (_parent, args: { input: { id: string; parentId?: string | null; name?: string | null; type?: string | null; status?: string | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'person.write');
+          const unit = seed.orgUnits.find((u) => u.id === args.input.id);
+          if (!unit) throw new Error(`Unknown org unit ${args.input.id}`);
+          requireSameOrg(ctx, unit.organizationId);
+          if (args.input.parentId != null) unit.parentId = args.input.parentId;
+          if (args.input.name != null) unit.name = args.input.name;
+          if (args.input.type != null) unit.type = args.input.type as never;
+          if (args.input.status != null) unit.status = args.input.status as never;
+          return unit;
+        },
+
+        createCompetencyCategory: (_parent, args: { input: { organizationId: string; parentId?: string | null; categoryType: string; name: string; description?: string | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          requireSameOrg(ctx, args.input.organizationId);
+          const category = {
+            id: `cat-${Date.now()}`,
+            organizationId: args.input.organizationId,
+            parentId: args.input.parentId ?? undefined,
+            categoryType: args.input.categoryType,
+            name: args.input.name,
+            description: args.input.description ?? '',
+            sourceKind: 'organization_custom' as const,
+            sortOrder: (seed.categories.at(-1)?.sortOrder ?? 0) + 10,
+            status: 'active' as const,
+          };
+          seed.categories.push(category);
+          return category;
+        },
+        updateCompetencyCategory: (_parent, args: { input: { id: string; name?: string | null; description?: string | null; categoryType?: string | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          const category = seed.categories.find((c) => c.id === args.input.id);
+          if (!category) throw new Error(`Unknown category ${args.input.id}`);
+          requireSameOrg(ctx, category.organizationId);
+          if (args.input.name != null) category.name = args.input.name;
+          if (args.input.description != null) category.description = args.input.description;
+          if (args.input.categoryType != null) category.categoryType = args.input.categoryType;
+          return category;
+        },
+        deleteCompetencyCategory: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          const idx = seed.categories.findIndex((c) => c.id === args.id);
+          if (idx < 0) return false;
+          requireSameOrg(ctx, seed.categories[idx].organizationId);
+          seed.categories.splice(idx, 1);
+          return true;
+        },
+        createCompetency: (_parent, args: { input: { organizationId: string; categoryId: string; code: string; name: string; description?: string | null; tags?: string[] | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          requireSameOrg(ctx, args.input.organizationId);
+          const competency = {
+            id: `comp-${Date.now()}`,
+            organizationId: args.input.organizationId,
+            categoryId: args.input.categoryId,
+            code: args.input.code,
+            name: args.input.name,
+            description: args.input.description ?? '',
+            sourceKind: 'organization_custom' as const,
+            validationStatus: 'draft' as const,
+            tags: args.input.tags ?? [],
+            behavioralIndicators: [],
+          };
+          seed.competencies.push(competency);
+          return competency;
+        },
+        updateCompetency: (_parent, args: { input: { id: string; name?: string | null; description?: string | null; categoryId?: string | null; tags?: string[] | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          const competency = seed.competencies.find((c) => c.id === args.input.id);
+          if (!competency) throw new Error(`Unknown competency ${args.input.id}`);
+          requireSameOrg(ctx, competency.organizationId);
+          if (args.input.name != null) competency.name = args.input.name;
+          if (args.input.description != null) competency.description = args.input.description;
+          if (args.input.categoryId != null) competency.categoryId = args.input.categoryId;
+          if (args.input.tags != null) competency.tags = args.input.tags;
+          return competency;
+        },
+        deleteCompetency: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          const idx = seed.competencies.findIndex((c) => c.id === args.id);
+          if (idx < 0) return false;
+          requireSameOrg(ctx, seed.competencies[idx].organizationId);
+          seed.competencies.splice(idx, 1);
+          return true;
+        },
+
+        createRoleFamily: (_parent, args: { input: { organizationId: string; name: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          requireSameOrg(ctx, args.input.organizationId);
+          const family = { id: `family-${Date.now()}`, organizationId: args.input.organizationId, name: args.input.name };
+          seed.roleFamilies.push(family);
+          return family;
+        },
+        createRole: (_parent, args: { input: { roleFamilyId: string; name: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          const role = { id: `role-${Date.now()}`, roleFamilyId: args.input.roleFamilyId, name: args.input.name };
+          seed.roles.push(role);
+          return role;
+        },
+        createGrade: (_parent, args: { input: { organizationId: string; name: string; rank: number } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          requireSameOrg(ctx, args.input.organizationId);
+          const grade = { id: `grade-${Date.now()}`, organizationId: args.input.organizationId, name: args.input.name, rank: args.input.rank };
+          seed.grades.push(grade);
+          return grade;
+        },
+        createRoleProfile: (_parent, args: { input: { roleId: string; gradeId: string; name: string; description?: string | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          const profile = {
+            id: `profile-${Date.now()}`,
+            roleId: args.input.roleId,
+            gradeId: args.input.gradeId,
+            name: args.input.name,
+            description: args.input.description ?? '',
+          };
+          seed.roleProfiles.push(profile);
+          return profile;
+        },
+        createRoleTask: (_parent, args: { input: { roleProfileId: string; name: string; expectedOutcome: string; criticality: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          const task = {
+            id: `task-${Date.now()}`,
+            roleProfileId: args.input.roleProfileId,
+            name: args.input.name,
+            expectedOutcome: args.input.expectedOutcome,
+            criticality: args.input.criticality as 'low' | 'medium' | 'high',
+          };
+          seed.roleTasks.push(task);
+          return task;
+        },
+        deleteRoleTask: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          const idx = seed.roleTasks.findIndex((t) => t.id === args.id);
+          if (idx < 0) return false;
+          seed.roleTasks.splice(idx, 1);
+          return true;
+        },
+
+        createMatrix: (_parent, args: { input: { roleProfileId: string; name: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'matrix.activate');
+          const matrix = {
+            id: `matrix-${Date.now()}`,
+            roleProfileId: args.input.roleProfileId,
+            name: args.input.name,
+            status: 'draft' as const,
+            activeRevisionId: '',
+          };
+          const revision = {
+            id: `rev-${Date.now()}`,
+            matrixId: matrix.id,
+            version: 1,
+            activatedAt: new Date().toISOString(),
+            requirements: [],
+          };
+          seed.matrices.push(matrix);
+          seed.matrixRevisions.push(revision);
+          matrix.activeRevisionId = revision.id;
+          return matrix;
+        },
+        upsertMatrixRequirement: (_parent, args: { input: { revisionId: string; competencyId: string; targetLevel: number; normalizedWeight: number; criticality: string; neededOnEntry?: boolean | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'matrix.activate');
+          const revision = seed.matrixRevisions.find((r) => r.id === args.input.revisionId);
+          if (!revision) throw new Error(`Unknown revision ${args.input.revisionId}`);
+          let requirement = revision.requirements.find((r) => r.competencyId === args.input.competencyId);
+          if (requirement) {
+            requirement.targetLevel = args.input.targetLevel;
+            requirement.normalizedWeight = args.input.normalizedWeight;
+            requirement.criticality = args.input.criticality as never;
+            requirement.neededOnEntry = args.input.neededOnEntry ?? false;
+          } else {
+            requirement = {
+              id: `req-${Date.now()}`,
+              competencyId: args.input.competencyId,
+              targetLevel: args.input.targetLevel,
+              required: true,
+              normalizedWeight: args.input.normalizedWeight,
+              weightSource: 'manual',
+              criticality: args.input.criticality as never,
+              neededOnEntry: args.input.neededOnEntry ?? false,
+            };
+            revision.requirements.push(requirement);
+          }
+          return requirement;
+        },
+        deleteMatrixRequirement: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'matrix.activate');
+          for (const revision of seed.matrixRevisions) {
+            const idx = revision.requirements.findIndex((r) => r.id === args.id);
+            if (idx >= 0) {
+              revision.requirements.splice(idx, 1);
+              return true;
+            }
+          }
+          return false;
+        },
+
+        createAssessment: (_parent, args: { input: { personId: string; roleProfileId: string; matrixRevisionId: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'assessment.finalize');
+          const person = findPerson(args.input.personId);
+          if (!person) throw new Error(`Unknown person ${args.input.personId}`);
+          requireSameOrg(ctx, person.organizationId);
+          const assessment = {
+            id: `assessment-${Date.now()}`,
+            personId: args.input.personId,
+            roleProfileId: args.input.roleProfileId,
+            matrixRevisionId: args.input.matrixRevisionId,
+            status: 'draft' as const,
+            scores: [],
+          };
+          seed.assessments.push(assessment);
+          return assessment;
+        },
+        upsertAssessmentScore: (_parent, args: { input: { assessmentId: string; competencyId: string; source: string; level: number; confidence?: number | null; verificationStatus?: string | null; comment?: string | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'assessment.finalize');
+          const assessment = assessmentById(args.input.assessmentId);
+          if (!assessment) throw new Error(`Unknown assessment ${args.input.assessmentId}`);
+          const person = findPerson(assessment.personId);
+          if (person) requireSameOrg(ctx, person.organizationId);
+          let score = assessment.scores.find((s) => s.competencyId === args.input.competencyId && s.source === args.input.source);
+          if (score) {
+            score.level = args.input.level;
+            score.confidence = args.input.confidence ?? score.confidence;
+            score.verificationStatus = (args.input.verificationStatus ?? score.verificationStatus) as never;
+            score.comment = args.input.comment ?? score.comment;
+          } else {
+            score = {
+              id: `score-${Date.now()}`,
+              competencyId: args.input.competencyId,
+              source: args.input.source as never,
+              level: args.input.level,
+              confidence: args.input.confidence ?? 0.5,
+              verificationStatus: (args.input.verificationStatus ?? 'unverified') as never,
+              comment: args.input.comment ?? '',
+            };
+            assessment.scores.push(score);
+          }
+          return score;
+        },
+
+        createCalibrationSession: (_parent, args: { input: { organizationId: string; name: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'assessment.finalize');
+          requireSameOrg(ctx, args.input.organizationId);
+          const session = {
+            id: `calibration-${Date.now()}`,
+            organizationId: args.input.organizationId,
+            name: args.input.name,
+            status: 'open' as const,
+          };
+          seed.calibrationSessions.push(session);
+          return session;
+        },
+        closeCalibrationSession: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'assessment.finalize');
+          const session = seed.calibrationSessions.find((s) => s.id === args.id);
+          if (!session) throw new Error(`Unknown calibration session ${args.id}`);
+          requireSameOrg(ctx, session.organizationId);
+          session.status = 'closed';
+          return session;
+        },
+        addCalibrationDecision: (_parent, args: { input: { sessionId: string; assessmentScoreId: string; originalLevel: number; calibratedLevel: number; reason?: string | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'assessment.finalize');
+          const session = seed.calibrationSessions.find((s) => s.id === args.input.sessionId);
+          if (!session) throw new Error(`Unknown calibration session ${args.input.sessionId}`);
+          requireSameOrg(ctx, session.organizationId);
+          const decision = {
+            id: `calibration-decision-${Date.now()}`,
+            sessionId: args.input.sessionId,
+            assessmentScoreId: args.input.assessmentScoreId,
+            originalLevel: args.input.originalLevel,
+            calibratedLevel: args.input.calibratedLevel,
+            reason: args.input.reason ?? '',
+          };
+          seed.calibrationDecisions.push(decision);
+          return decision;
+        },
+        deleteCalibrationDecision: (_parent, args: { id: string }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'assessment.finalize');
+          const idx = seed.calibrationDecisions.findIndex((d) => d.id === args.id);
+          if (idx < 0) return false;
+          seed.calibrationDecisions.splice(idx, 1);
+          return true;
+        },
+
+        createLevelScale: (_parent, args: { input: { organizationId: string; name: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          requireSameOrg(ctx, args.input.organizationId);
+          const scale = {
+            id: `scale-${Date.now()}`,
+            organizationId: args.input.organizationId,
+            name: args.input.name,
+            isDefault: false,
+            status: 'draft' as const,
+          };
+          seed.levelScales.push(scale);
+          return scale;
+        },
+        upsertLevelDimensionDescriptor: (_parent, args: { input: { scaleId: string; levelValue: number; dimension: string; description: string } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          const scale = seed.levelScales.find((s) => s.id === args.input.scaleId);
+          if (!scale) throw new Error(`Unknown scale ${args.input.scaleId}`);
+          requireSameOrg(ctx, scale.organizationId);
+          let descriptor = seed.levelDimensionDescriptors.find(
+            (d) => d.scaleId === args.input.scaleId && d.levelValue === args.input.levelValue && d.dimension === args.input.dimension,
+          );
+          if (descriptor) {
+            descriptor.description = args.input.description;
+          } else {
+            descriptor = {
+              id: `dim-${Date.now()}`,
+              scaleId: args.input.scaleId,
+              levelValue: args.input.levelValue,
+              dimension: args.input.dimension as never,
+              description: args.input.description,
+            };
+            seed.levelDimensionDescriptors.push(descriptor);
+          }
+          return descriptor;
+        },
+        createScoringRule: (_parent, args: { input: { organizationId: string; name: string; confidenceThreshold?: number | null } }, ctx: ComatrixContext) => {
+          requirePermission(ctx.session, 'methodology.write');
+          requireSameOrg(ctx, args.input.organizationId);
+          const rule = {
+            id: `scoring-${Date.now()}`,
+            organizationId: args.input.organizationId,
+            name: args.input.name,
+            confidenceThreshold: args.input.confidenceThreshold ?? 0.7,
+            isDefault: false,
+            status: 'active' as const,
+          };
+          seed.scoringRules.push(rule);
+          return rule;
+        },
       },
       CompetencyCategory: {
         competencies: (category: { id: string }) =>
