@@ -47,6 +47,9 @@ export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
+  /** observable pulse sections can switchMap onto to auto-reload after mutations */
+  readonly changes$ = this.refresh$.asObservable();
+
   readonly peopleData$ = this.refresh$.pipe(switchMap(() => this.loadPeopleAssignments()));
   readonly gapSummary$ = this.refresh$.pipe(
     switchMap(() =>

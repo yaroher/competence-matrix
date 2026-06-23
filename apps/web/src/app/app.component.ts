@@ -4,7 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ApiService, DEV_PERSONAS, GapVm, MatrixRequirementVm, PeopleAssignmentsVm, ScoreVm, activeUserId } from './api.service';
 import { CompetenciesComponent } from './sections/competencies.component';
 import { RolesComponent } from './sections/roles.component';
-import { MatricesComponent } from './sections/matrices.component';
+import { MatrixBuilderComponent } from './sections/matrix-builder.component';
 import { AssessmentsComponent } from './sections/assessments.component';
 import { DevelopmentComponent } from './sections/development.component';
 import { CalibrationSectionComponent } from './sections/calibration.component';
@@ -49,7 +49,7 @@ interface OrgUnitNode extends OrgUnit {
     ZardTableRowComponent,
     CompetenciesComponent,
     RolesComponent,
-    MatricesComponent,
+    MatrixBuilderComponent,
     AssessmentsComponent,
     DevelopmentComponent,
     CalibrationSectionComponent,
@@ -64,7 +64,7 @@ interface OrgUnitNode extends OrgUnit {
 export class AppComponent {
   private readonly api = inject(ApiService);
   readonly i18n = inject(I18nService);
-  readonly selectedNav = signal('Dashboard');
+  readonly selectedNav = signal('Matrices');
   readonly loggedIn = signal(false);
   readonly loginUserId = signal(activeUserId());
   readonly data = toSignal(this.api.loadMvpData());
@@ -151,17 +151,18 @@ export class AppComponent {
   });
 
   navItems = [
-    { id: 'Dashboard', key: 'nav.dashboard' },
-    { id: 'Competencies', key: 'nav.competencies' },
-    { id: 'Roles', key: 'nav.roles' },
     { id: 'Matrices', key: 'nav.matrices' },
-    { id: 'Assessments', key: 'nav.assessments' },
-    { id: 'Calibration', key: 'nav.calibration' },
-    { id: 'Development', key: 'nav.development' },
-    { id: 'Analytics', key: 'nav.analytics' },
-    { id: 'Methodology', key: 'nav.methodology' },
-    { id: 'Audit', key: 'nav.audit' },
-    { id: 'Admin', key: 'nav.admin' },
+    { id: 'Competencies', key: 'nav.competencies' },
+    { id: 'Dashboard', key: 'nav.dashboard' },
+    // — отключено, пока не нужно (просто раскомментируй, чтобы вернуть) —
+    // { id: 'Roles', key: 'nav.roles' },
+    // { id: 'Assessments', key: 'nav.assessments' },
+    // { id: 'Calibration', key: 'nav.calibration' },
+    // { id: 'Development', key: 'nav.development' },
+    // { id: 'Analytics', key: 'nav.analytics' },
+    // { id: 'Methodology', key: 'nav.methodology' },
+    // { id: 'Audit', key: 'nav.audit' },
+    // { id: 'Admin', key: 'nav.admin' },
   ];
 
   requirementTrack(_index: number, item: MatrixRequirementVm) {
