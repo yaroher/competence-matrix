@@ -104,21 +104,6 @@ query PeopleAssignments {
     isDefault
     status
   }
-  organizationGapSummary {
-    assessedPeople
-    totalPeople
-    coveragePercent
-    criticalGapCount
-    byCompetency {
-      competencyId
-      competencyName
-      criticality
-      assessedPeople
-      totalGap
-      avgGap
-      isCritical
-    }
-  }
   auditEvents(limit: 20) {
     id
     action

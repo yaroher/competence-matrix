@@ -54,7 +54,7 @@ export class AppComponent {
   readonly levelScales = computed(() => this.people()?.levelScales ?? []);
   readonly scoringRules = computed(() => this.people()?.scoringRules ?? []);
   readonly defaultScoringRule = computed(() => this.scoringRules().find((rule) => rule.isDefault) ?? null);
-  readonly orgGapSummary = computed(() => this.people()?.organizationGapSummary ?? null);
+  readonly orgGapSummary = toSignal(this.api.loadOrganizationGapSummary());
   readonly auditEvents = computed(() => this.people()?.auditEvents ?? []);
   readonly actor = computed(() => this.people()?.currentActor ?? null);
   readonly personas = DEV_PERSONAS;

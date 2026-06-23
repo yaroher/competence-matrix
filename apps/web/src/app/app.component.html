@@ -131,7 +131,10 @@
             }
           </article>
         } @else {
-          <article class="panel admin-empty"><strong>Loading analytics</strong><span>Waiting for GraphQL API on /graphql</span></article>
+          <article class="panel admin-empty">
+            <strong>Analytics not available</strong>
+            <span>Your current role does not have access to organization analytics. Switch to a manager/HR/methodology admin user in the top-right switcher.</span>
+          </article>
         }
       </section>
     } @else if (selectedNav() === 'Methodology') {

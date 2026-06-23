@@ -1,9 +1,9 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { MvpSliceDocument, PeopleAssignmentsDocument, type MvpSliceQuery, type PeopleAssignmentsQuery } from '@comatrix/api-contracts';
+import { OrganizationGapSummaryDocument, MvpSliceDocument, PeopleAssignmentsDocument, type MvpSliceQuery, type OrganizationGapSummaryQuery, type PeopleAssignmentsQuery } from '@comatrix/api-contracts';
 import { print } from 'graphql';
-import { map, retry, timer } from 'rxjs';
+import { catchError, map, of, retry, timer } from 'rxjs';
 
 export type MvpDataVm = Omit<MvpSliceQuery, 'roleProfile' | 'matrix' | 'assessment' | 'developmentPlan'> & {
   roleProfile: NonNullable<MvpSliceQuery['roleProfile']>;
@@ -17,6 +17,7 @@ export type ScoreVm = MvpDataVm['assessment']['scores'][number];
 export type GapVm = MvpDataVm['assessment']['gaps'][number];
 
 export type PeopleAssignmentsVm = PeopleAssignmentsQuery;
+export type OrganizationGapSummaryVm = OrganizationGapSummaryQuery['organizationGapSummary'] | null;
 
 interface GraphQlResponse<T> {
   data: T;
@@ -75,6 +76,18 @@ export class ApiService {
         }
         return response.data;
       }),
+    );
+  }
+
+  loadOrganizationGapSummary() {
+    return this.http.post<GraphQlResponse<OrganizationGapSummaryQuery>>('/graphql', { query: print(OrganizationGapSummaryDocument) }).pipe(
+      map((response) => {
+        if (response.errors?.length) {
+          throw new Error(response.errors.map((error) => error.message).join('\n'));
+        }
+        return response.data.organizationGapSummary;
+      }),
+      catchError(() => of(null)),
     );
   }
 }
