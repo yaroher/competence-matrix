@@ -1,577 +1,247 @@
+// AUTO-GENERATED from schema.graphql by scripts/generate-schema-ts.mjs.
+// Do not edit by hand — change schema.graphql and run `yarn codegen`.
 export const schema = /* GraphQL */ `
-  type Query {
-    dashboard: DashboardSummary!
-    organization: Organization!
-    ontology: Ontology!
-    currentActor: Actor!
-    orgUnits: [OrgUnit!]!
-    people: [Person!]!
-    person(id: ID!): Person
-    currentAssignment(personId: ID!): Assignment
-    directReports(managerPersonId: ID!): [Assignment!]!
-    roleProfile(id: ID!): RoleProfile
-    matrix(id: ID!): Matrix
-    assessment(id: ID!): Assessment
-    developmentPlan(assessmentId: ID!): DevelopmentPlan
-    calibrationSessions: [CalibrationSession!]!
-    levelScales: [LevelScale!]!
-    scoringRules: [ScoringRule!]!
-    roleFamilies: [RoleFamily!]!
-    roles: [Role!]!
-    grades: [Grade!]!
-    roleProfiles: [RoleProfile!]!
-    matrices: [Matrix!]!
-    assessments: [Assessment!]!
-    managerDashboard(managerPersonId: ID!): ManagerDashboard
-    organizationGapSummary: OrganizationGapSummary!
-    exportMatrixRequirements(matrixRevisionId: ID!): [MatrixRequirementExportRow!]!
-    exportGapSummary(assessmentId: ID!): [GapExportRow!]!
-    auditEvents(entityType: String, entityId: ID, limit: Int = 20): [AuditEvent!]!
-  }
-
-  type Mutation {
-    createPerson(input: CreatePersonInput!): Person!
-    updatePerson(input: UpdatePersonInput!): Person!
-    createAssignment(input: CreateAssignmentInput!): Assignment!
-    archiveAssignment(id: ID!): Assignment!
-    setDefaultScoringRule(id: ID!): ScoringRule!
-    importCompetencies(input: [CompetencyImportInput!]!): ImportValidationReport!
-    finalizeAssessment(id: ID!): Assessment!
-    activateMatrix(id: ID!): Matrix!
-
-    createOrgUnit(input: OrgUnitInput!): OrgUnit!
-    updateOrgUnit(input: UpdateOrgUnitInput!): OrgUnit!
-
-    createCompetencyCategory(input: CompetencyCategoryInput!): CompetencyCategory!
-    updateCompetencyCategory(input: UpdateCompetencyCategoryInput!): CompetencyCategory!
-    deleteCompetencyCategory(id: ID!): Boolean!
-    createCompetency(input: CompetencyInput!): Competency!
-    updateCompetency(input: UpdateCompetencyInput!): Competency!
-    deleteCompetency(id: ID!): Boolean!
-
-    createRoleFamily(input: NameInput!): RoleFamily!
-    createRole(input: RoleInput!): Role!
-    createGrade(input: GradeInput!): Grade!
-    createRoleProfile(input: RoleProfileInput!): RoleProfile!
-    createRoleTask(input: RoleTaskInput!): RoleTask!
-    deleteRoleTask(id: ID!): Boolean!
-
-    createMatrix(input: MatrixInput!): Matrix!
-    upsertMatrixRequirement(input: MatrixRequirementInput!): MatrixRequirement!
-    deleteMatrixRequirement(id: ID!): Boolean!
-
-    createAssessment(input: CreateAssessmentInput!): Assessment!
-    upsertAssessmentScore(input: AssessmentScoreInput!): AssessmentScore!
-
-    createCalibrationSession(input: NameInput!): CalibrationSession!
-    closeCalibrationSession(id: ID!): CalibrationSession!
-    addCalibrationDecision(input: CalibrationDecisionInput!): CalibrationDecision!
-    deleteCalibrationDecision(id: ID!): Boolean!
-
-    createLevelScale(input: NameInput!): LevelScale!
-    upsertLevelDimensionDescriptor(input: LevelDimensionDescriptorInput!): LevelDimensionDescriptor!
-    createScoringRule(input: ScoringRuleInput!): ScoringRule!
-    updateDevelopmentPlanItem(input: UpdateDevelopmentPlanItemInput!): DevelopmentPlanItem!
-  }
-
-  input UpdateDevelopmentPlanItemInput {
-    id: ID!
-    status: String
-    dueDate: String
-  }
-
-  input UpdatePersonInput {
-    id: ID!
-    fullName: String
-    email: String
-    status: String
-  }
-
-  input OrgUnitInput {
-    organizationId: ID!
-    parentId: ID
-    type: String!
-    name: String!
-  }
-
-  input UpdateOrgUnitInput {
-    id: ID!
-    parentId: ID
-    name: String
-    type: String
-    status: String
-  }
-
-  input CompetencyCategoryInput {
-    organizationId: ID!
-    parentId: ID
-    categoryType: String!
-    name: String!
-    description: String
-  }
-
-  input UpdateCompetencyCategoryInput {
-    id: ID!
-    name: String
-    description: String
-    categoryType: String
-  }
-
-  input CompetencyInput {
-    organizationId: ID!
-    categoryId: ID!
-    code: String!
-    name: String!
-    description: String
-    tags: [String!]
-  }
-
-  input UpdateCompetencyInput {
-    id: ID!
-    name: String
-    description: String
-    categoryId: ID
-    tags: [String!]
-  }
-
-  input NameInput {
-    organizationId: ID!
-    name: String!
-  }
-
-  input RoleInput {
-    roleFamilyId: ID!
-    name: String!
-  }
-
-  input GradeInput {
-    organizationId: ID!
-    name: String!
-    rank: Int!
-  }
-
-  input RoleProfileInput {
-    roleId: ID!
-    gradeId: ID!
-    name: String!
-    description: String
-  }
-
-  input RoleTaskInput {
-    roleProfileId: ID!
-    name: String!
-    expectedOutcome: String!
-    criticality: String!
-  }
-
-  input MatrixInput {
-    roleProfileId: ID!
-    name: String!
-  }
-
-  input MatrixRequirementInput {
-    revisionId: ID!
-    competencyId: ID!
-    targetLevel: Int!
-    normalizedWeight: Float!
-    criticality: String!
-    neededOnEntry: Boolean
-  }
-
-  input CreateAssessmentInput {
-    personId: ID!
-    roleProfileId: ID!
-    matrixRevisionId: ID!
-  }
-
-  input AssessmentScoreInput {
-    assessmentId: ID!
-    competencyId: ID!
-    source: String!
-    level: Int!
-    confidence: Float
-    verificationStatus: String
-    comment: String
-  }
-
-  input CalibrationDecisionInput {
-    sessionId: ID!
-    assessmentScoreId: ID!
-    originalLevel: Int!
-    calibratedLevel: Int!
-    reason: String
-  }
-
-  input LevelDimensionDescriptorInput {
-    scaleId: ID!
-    levelValue: Int!
-    dimension: String!
-    description: String!
-  }
-
-  input ScoringRuleInput {
-    organizationId: ID!
-    name: String!
-    confidenceThreshold: Float
-  }
-
-  input CreatePersonInput {
-    fullName: String!
-    email: String!
-  }
-
-  input CreateAssignmentInput {
-    personId: ID!
-    orgUnitId: ID!
-    managerPersonId: ID
-    roleProfileId: ID!
-    effectiveFrom: String!
-  }
-
-  input CompetencyImportInput {
-    category: String!
-    categoryType: String
-    code: String!
-    name: String!
-    description: String
-    tags: [String!]
-  }
-
-  type MatrixRequirementExportRow {
-    competencyCode: String!
-    competencyName: String!
-    targetLevel: Int!
-    required: Boolean!
-    normalizedWeight: Float!
-    criticality: String!
-    neededOnEntry: Boolean!
-  }
-
-  type GapExportRow {
-    competencyCode: String!
-    competencyName: String!
-    targetLevel: Int!
-    currentLevel: Int!
-    gap: Int!
-    weightedGap: Float!
-    criticality: String!
-  }
-
-  type ImportRowError {
-    row: Int!
-    field: String
-    message: String!
-  }
-
-  type ImportValidationReport {
-    applied: Boolean!
-    rowCount: Int!
-    valid: Boolean!
-    errors: [ImportRowError!]!
-    categoriesParsed: Int!
-    competenciesParsed: Int!
-  }
-
-  type AuditEvent {
-    id: ID!
-    action: String!
-    entityType: String!
-    entityId: ID!
-    summary: String!
-    actorUserId: ID
-    actorPersonId: ID
-    createdAt: String!
-  }
-
-  type DashboardSummary {
-    activeCycleName: String!
-    ontologyDomains: Int!
-    competencies: Int!
-    matrixRequirements: Int!
-    assessmentCoveragePercent: Int!
-    criticalGaps: Int!
-  }
-
-  type Organization {
-    id: ID!
-    name: String!
-    status: String!
-  }
-
-  type User {
-    id: ID!
-    email: String!
-    role: String!
-    status: String!
-    person: Person
-  }
-
-  type Actor {
-    user: User!
-    person: Person
-  }
-
-  type Ontology {
-    categories: [CompetencyCategory!]!
-    competencies: [Competency!]!
-    relations: [CompetencyRelation!]!
-    levels: [LevelDefinition!]!
-  }
-
-  type CompetencyCategory {
-    id: ID!
-    parentId: ID
-    categoryType: String!
-    name: String!
-    description: String!
-    sourceKind: String!
-    sourceRef: String
-    sortOrder: Int!
-    status: String!
-    competencies: [Competency!]!
-  }
-
-  type Competency {
-    id: ID!
-    categoryId: ID!
-    code: String!
-    name: String!
-    description: String!
-    sourceKind: String!
-    sourceRef: String
-    validationStatus: String!
-    tags: [String!]!
-    behavioralIndicators: [BehavioralIndicator!]!
-  }
-
-  type BehavioralIndicator {
-    level: Int!
-    description: String!
-  }
-
-  type CompetencyRelation {
-    id: ID!
-    sourceCompetencyId: ID!
-    targetCompetencyId: ID!
-    relationType: String!
-    strength: Float!
-  }
-
-  type LevelDefinition {
-    value: Int!
-    title: String!
-    description: String!
-  }
-
-  type LevelScale {
-    id: ID!
-    name: String!
-    isDefault: Boolean!
-    status: String!
-    levels: [LevelDefinition!]!
-    dimensionDescriptors: [LevelDimensionDescriptor!]!
-  }
-
-  type LevelDimensionDescriptor {
-    id: ID!
-    levelValue: Int!
-    dimension: String!
-    description: String!
-  }
-
-  type ScoringRule {
-    id: ID!
-    name: String!
-    confidenceThreshold: Float!
-    isDefault: Boolean!
-    status: String!
-  }
-
-  type ManagerDashboard {
-    managerPersonId: ID!
-    reports: [ManagerReportCoverage!]!
-  }
-
-  type ManagerReportCoverage {
-    personId: ID!
-    fullName: String!
-    hasAssessment: Boolean!
-    assessmentStatus: String
-    gapCount: Int!
-    criticalGapCount: Int!
-  }
-
-  type OrganizationGapSummary {
-    assessedPeople: Int!
-    totalPeople: Int!
-    coveragePercent: Int!
-    criticalGapCount: Int!
-    byCompetency: [CompetencyGapSummary!]!
-  }
-
-  type CompetencyGapSummary {
-    competencyId: ID!
-    competencyName: String!
-    criticality: String!
-    assessedPeople: Int!
-    totalGap: Int!
-    avgGap: Float!
-    isCritical: Boolean!
-  }
-
-  type RoleProfile {
-    id: ID!
-    name: String!
-    description: String!
-    role: Role!
-    grade: Grade!
-    tasks: [RoleTask!]!
-  }
-
-  type Role {
-    id: ID!
-    name: String!
-    family: RoleFamily!
-  }
-
-  type RoleFamily {
-    id: ID!
-    name: String!
-  }
-
-  type Grade {
-    id: ID!
-    name: String!
-    rank: Int!
-  }
-
-  type RoleTask {
-    id: ID!
-    name: String!
-    expectedOutcome: String!
-    criticality: String!
-    competencyLinks: [TaskCompetencyLink!]!
-  }
-
-  type TaskCompetencyLink {
-    id: ID!
-    competency: Competency!
-    criticality: String!
-    neededOnEntry: Boolean!
-  }
-
-  type Matrix {
-    id: ID!
-    name: String!
-    status: String!
-    roleProfile: RoleProfile!
-    activeRevision: MatrixRevision!
-  }
-
-  type MatrixRevision {
-    id: ID!
-    version: Int!
-    activatedAt: String!
-    requirements: [MatrixRequirement!]!
-  }
-
-  type MatrixRequirement {
-    id: ID!
-    competency: Competency!
-    targetLevel: Int!
-    required: Boolean!
-    normalizedWeight: Float!
-    weightSource: String!
-    criticality: String!
-    neededOnEntry: Boolean!
-  }
-
-  type Assessment {
-    id: ID!
-    person: Person!
-    roleProfile: RoleProfile!
-    status: String!
-    scores: [AssessmentScore!]!
-    gaps: [Gap!]!
-  }
-
-  type Person {
-    id: ID!
-    fullName: String!
-    email: String!
-    status: String!
-    currentAssignment: Assignment
-  }
-
-  type OrgUnit {
-    id: ID!
-    parentId: ID
-    type: String!
-    name: String!
-    status: String!
-  }
-
-  type Assignment {
-    id: ID!
-    person: Person!
-    orgUnit: OrgUnit!
-    manager: Person
-    roleProfile: RoleProfile!
-    effectiveFrom: String!
-    effectiveTo: String
-    status: String!
-  }
-
-  type AssessmentScore {
-    id: ID!
-    competency: Competency!
-    source: String!
-    level: Int!
-    confidence: Float!
-    verificationStatus: String!
-    comment: String!
-  }
-
-  type Gap {
-    competency: Competency!
-    targetLevel: Int!
-    currentLevel: Int!
-    gap: Int!
-    weightedGap: Float!
-    criticality: String!
-  }
-
-  type DevelopmentPlan {
-    id: ID!
-    person: Person!
-    assessment: Assessment!
-    items: [DevelopmentPlanItem!]!
-  }
-
-  type DevelopmentPlanItem {
-    id: ID!
-    competency: Competency!
-    gap: Int!
-    title: String!
-    owner: Person!
-    status: String!
-    dueDate: String!
-  }
-
-  type CalibrationSession {
-    id: ID!
-    name: String!
-    status: String!
-    decisions: [CalibrationDecision!]!
-  }
-
-  type CalibrationDecision {
-    id: ID!
-    originalLevel: Int!
-    calibratedLevel: Int!
-    diff: Int!
-    reason: String!
-    score: AssessmentScore!
-  }
+type Query {
+  health: Health!
+  grades: [Grade!]!
+  skills: [Skill!]!
+  skillCatalogNodes: [SkillCatalogNode!]!
+  skillCatalogTree: [SkillCatalogNode!]!
+  competencyRoles: [CompetencyRole!]!
+  competencyRole(id: ID!): CompetencyRole
+}
+
+type Mutation {
+  createGrade(input: CreateGradeInput!): Grade!
+  updateGrade(input: UpdateGradeInput!): Grade!
+  createSkill(input: CreateSkillInput!): Skill!
+  updateSkill(input: UpdateSkillInput!): Skill!
+  createSkillScaleMark(input: CreateSkillScaleMarkInput!): SkillScaleMark!
+  updateSkillScaleMark(input: UpdateSkillScaleMarkInput!): SkillScaleMark!
+  deleteSkillScaleMark(input: DeleteSkillScaleMarkInput!): ID!
+  createSkillCatalogFolder(input: CreateSkillCatalogFolderInput!): SkillCatalogNode!
+  updateSkillCatalogFolder(input: UpdateSkillCatalogFolderInput!): SkillCatalogNode!
+  placeSkillInCatalog(input: PlaceSkillInCatalogInput!): SkillCatalogNode!
+  moveSkillCatalogNode(input: MoveSkillCatalogNodeInput!): SkillCatalogNode!
+  deleteSkillCatalogNode(input: DeleteSkillCatalogNodeInput!): ID!
+  createCompetencyRole(input: CreateCompetencyRoleInput!): CompetencyRole!
+  updateCompetencyRole(input: UpdateCompetencyRoleInput!): CompetencyRole!
+  addSkillToCompetencyRole(input: AddSkillToCompetencyRoleInput!): CompetencyRoleSkill!
+  updateCompetencyRoleSkill(input: UpdateCompetencyRoleSkillInput!): CompetencyRoleSkill!
+  removeSkillFromCompetencyRole(input: RemoveSkillFromCompetencyRoleInput!): ID!
+  setRoleSkillGradeTarget(input: SetRoleSkillGradeTargetInput!): RoleSkillGradeTarget!
+}
+
+type Health {
+  ok: Boolean!
+  service: String!
+}
+
+type Grade {
+  id: ID!
+  name: String!
+  sortOrder: Int!
+  createdByUserId: ID!
+  createdAt: String!
+  updatedAt: String!
+  archivedAt: String
+}
+
+type Skill {
+  id: ID!
+  name: String!
+  description: String!
+  scaleMin: Int!
+  scaleMax: Int!
+  scaleStep: Int!
+  marks: [SkillScaleMark!]!
+  createdByUserId: ID!
+  createdAt: String!
+  updatedAt: String!
+  archivedAt: String
+}
+
+type SkillScaleMark {
+  id: ID!
+  skillId: ID!
+  skill: Skill!
+  value: Int!
+  label: String!
+  description: String!
+  sortOrder: Int!
+}
+
+enum SkillCatalogNodeKind {
+  FOLDER
+  SKILL
+}
+
+type SkillCatalogNode {
+  id: ID!
+  parentId: ID
+  parent: SkillCatalogNode
+  kind: SkillCatalogNodeKind!
+  folderName: String
+  skillId: ID
+  skill: Skill
+  children: [SkillCatalogNode!]!
+  sortOrder: Int!
+  createdByUserId: ID!
+  createdAt: String!
+  updatedAt: String!
+  archivedAt: String
+}
+
+type CompetencyRole {
+  id: ID!
+  name: String!
+  description: String!
+  skills: [CompetencyRoleSkill!]!
+  createdByUserId: ID!
+  createdAt: String!
+  updatedAt: String!
+  archivedAt: String
+}
+
+type CompetencyRoleSkill {
+  id: ID!
+  roleId: ID!
+  role: CompetencyRole!
+  skillId: ID!
+  skill: Skill!
+  sortOrder: Int!
+  isRequired: Boolean!
+  gradeTargets: [RoleSkillGradeTarget!]!
+  createdByUserId: ID!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type RoleSkillGradeTarget {
+  id: ID!
+  roleSkillId: ID!
+  roleSkill: CompetencyRoleSkill!
+  gradeId: ID!
+  grade: Grade!
+  targetValue: Int!
+  createdByUserId: ID!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateGradeInput {
+  name: String!
+  sortOrder: Int
+  createdByUserId: ID!
+}
+
+input UpdateGradeInput {
+  id: ID!
+  name: String
+  sortOrder: Int
+}
+
+input CreateSkillInput {
+  name: String!
+  description: String
+  scaleMin: Int!
+  scaleMax: Int!
+  scaleStep: Int!
+  createdByUserId: ID!
+}
+
+input UpdateSkillInput {
+  id: ID!
+  name: String
+  description: String
+  scaleMin: Int
+  scaleMax: Int
+  scaleStep: Int
+}
+
+input CreateSkillScaleMarkInput {
+  skillId: ID!
+  value: Int!
+  label: String!
+  description: String
+  sortOrder: Int
+}
+
+input UpdateSkillScaleMarkInput {
+  id: ID!
+  value: Int
+  label: String
+  description: String
+  sortOrder: Int
+}
+
+input DeleteSkillScaleMarkInput {
+  id: ID!
+}
+
+input CreateSkillCatalogFolderInput {
+  parentId: ID
+  name: String!
+  sortOrder: Int
+  createdByUserId: ID!
+}
+
+input UpdateSkillCatalogFolderInput {
+  id: ID!
+  name: String
+}
+
+input PlaceSkillInCatalogInput {
+  parentId: ID
+  skillId: ID!
+  sortOrder: Int
+  createdByUserId: ID!
+}
+
+input MoveSkillCatalogNodeInput {
+  nodeId: ID!
+  parentId: ID
+  sortOrder: Int
+}
+
+input DeleteSkillCatalogNodeInput {
+  id: ID!
+}
+
+input CreateCompetencyRoleInput {
+  name: String!
+  description: String
+  createdByUserId: ID!
+}
+
+input UpdateCompetencyRoleInput {
+  id: ID!
+  name: String
+  description: String
+}
+
+input AddSkillToCompetencyRoleInput {
+  roleId: ID!
+  skillId: ID!
+  sortOrder: Int
+  isRequired: Boolean
+  createdByUserId: ID!
+}
+
+input UpdateCompetencyRoleSkillInput {
+  id: ID!
+  sortOrder: Int
+  isRequired: Boolean
+}
+
+input RemoveSkillFromCompetencyRoleInput {
+  id: ID!
+}
+
+input SetRoleSkillGradeTargetInput {
+  roleSkillId: ID!
+  gradeId: ID!
+  targetValue: Int!
+  createdByUserId: ID!
+}
 `;
-

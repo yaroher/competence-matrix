@@ -17,7 +17,7 @@
     "typecheck": "yarn codegen && tsc -p tsconfig.json --noEmit",
     "test": "yarn codegen && tsc -p tsconfig.json --noEmit",
     "lint": "yarn codegen && tsc -p tsconfig.json --noEmit",
-    "codegen": "graphql-codegen --config codegen.yml"
+    "codegen": "node scripts/generate-schema-ts.mjs && graphql-codegen --config codegen.yml"
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",

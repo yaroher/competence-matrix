@@ -1,21 +1,19 @@
 # Competence Matrix
 
-Corporate competency-matrix platform MVP.
+Clean development scaffold for a new product implementation.
 
-## Current Slice
+## What Is Kept
 
-The first runnable slice covers:
-
-- Yarn workspaces + Turborepo.
-- GraphQL Yoga API.
-- Angular web app.
-- Extensible IT ontology seed.
-- `Backend Go Engineer / Senior` role profile.
-- Matrix, assessment, gap, and development-plan read path.
-- GraphQL Code Generator artifacts from `.graphql` schema and operations.
-- Drizzle schema, generated SQL migrations, local PostgreSQL seed and optional API PostgreSQL data source.
-- Zard UI components on Tailwind CSS v4.
-- Playwright browser smoke test.
+- Yarn workspaces and Turborepo task orchestration.
+- TypeScript base config.
+- GraphQL Yoga API with `/graphql`, `/healthz`, and `/readyz`.
+- React application shell on Vite with proxying to the API.
+- Tailwind CSS v4 and PostCSS setup.
+- GraphQL Code Generator setup.
+- Drizzle/PostgreSQL package, config, migration directory, and seed command.
+- Docker Compose local stack.
+- GitHub Actions CI.
+- Playwright smoke-test wiring.
 
 ## Local Run
 
@@ -27,24 +25,20 @@ yarn dev
 
 The web app runs on `http://localhost:4200` and proxies `/graphql` to the API on `http://localhost:4000/graphql`.
 
-By default the API uses the in-memory MVP seed so the app can run without Docker:
+## Database Tooling
 
-```bash
-COMATRIX_DATA_SOURCE=seed yarn dev
-```
-
-For the PostgreSQL path:
+The database schema is intentionally empty until the new product model is defined.
 
 ```bash
 docker compose up -d postgres
+yarn db:generate
 yarn db:migrate
 yarn db:seed
-COMATRIX_DATA_SOURCE=postgres yarn workspace @comatrix/api dev
 ```
 
 The local default database URL is `postgres://comatrix:comatrix@localhost:5432/comatrix`.
 
-## Codegen
+## GraphQL Codegen
 
 GraphQL schema and operations live in `packages/api-contracts/src`.
 
@@ -52,29 +46,14 @@ GraphQL schema and operations live in `packages/api-contracts/src`.
 yarn codegen
 ```
 
-Generated TypeScript operation types and `TypedDocumentNode` artifacts are emitted to `packages/api-contracts/src/generated/graphql.ts` and consumed by the Angular app.
+Generated TypeScript operation types and `TypedDocumentNode` artifacts are emitted to `packages/api-contracts/src/generated/graphql.ts`.
 
-## Smoke Check
-
-```bash
-curl -fsS http://localhost:4000/graphql \
-  -H "content-type: application/json" \
-  --data '{"query":"query { dashboard { activeCycleName competencies criticalGaps } roleProfile(id: \"profile-backend-go-senior\") { name grade { name } } }"}'
-```
+## Checks
 
 ```bash
+yarn codegen:check
 yarn typecheck
 yarn test
 yarn e2e
+yarn build
 ```
-
-## Zard UI
-
-The app uses Zard CLI generated Angular components:
-
-- `button`
-- `badge`
-- `card`
-- `table`
-
-Configuration lives in `apps/web/components.json`. Tailwind CSS v4 is imported from `apps/web/src/styles.css`, with theme tokens for the generated Zard classes.

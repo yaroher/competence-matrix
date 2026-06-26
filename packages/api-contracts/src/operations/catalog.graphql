@@ -1,0 +1,193 @@
+fragment GradeFields on Grade {
+  id
+  name
+  sortOrder
+}
+
+fragment SkillMarkFields on SkillScaleMark {
+  id
+  skillId
+  value
+  label
+  description
+  sortOrder
+}
+
+fragment SkillFields on Skill {
+  id
+  name
+  description
+  scaleMin
+  scaleMax
+  scaleStep
+  marks {
+    ...SkillMarkFields
+  }
+}
+
+fragment CatalogNodeFields on SkillCatalogNode {
+  id
+  parentId
+  kind
+  folderName
+  skillId
+  sortOrder
+  skill {
+    id
+    name
+  }
+}
+
+fragment RoleSkillGradeTargetFields on RoleSkillGradeTarget {
+  id
+  roleSkillId
+  gradeId
+  targetValue
+  grade {
+    ...GradeFields
+  }
+}
+
+fragment CompetencyRoleSkillFields on CompetencyRoleSkill {
+  id
+  roleId
+  skillId
+  sortOrder
+  isRequired
+  skill {
+    id
+    name
+    scaleMin
+    scaleMax
+    scaleStep
+  }
+  gradeTargets {
+    ...RoleSkillGradeTargetFields
+  }
+}
+
+fragment CompetencyRoleFields on CompetencyRole {
+  id
+  name
+  description
+  skills {
+    ...CompetencyRoleSkillFields
+  }
+}
+
+query CatalogSnapshot {
+  grades {
+    ...GradeFields
+  }
+  skills {
+    ...SkillFields
+  }
+  skillCatalogNodes {
+    ...CatalogNodeFields
+  }
+  competencyRoles {
+    ...CompetencyRoleFields
+  }
+}
+
+mutation CreateGrade($input: CreateGradeInput!) {
+  createGrade(input: $input) {
+    ...GradeFields
+  }
+}
+
+mutation UpdateGrade($input: UpdateGradeInput!) {
+  updateGrade(input: $input) {
+    ...GradeFields
+  }
+}
+
+mutation CreateSkill($input: CreateSkillInput!) {
+  createSkill(input: $input) {
+    ...SkillFields
+  }
+}
+
+mutation UpdateSkill($input: UpdateSkillInput!) {
+  updateSkill(input: $input) {
+    ...SkillFields
+  }
+}
+
+mutation CreateSkillScaleMark($input: CreateSkillScaleMarkInput!) {
+  createSkillScaleMark(input: $input) {
+    ...SkillMarkFields
+  }
+}
+
+mutation UpdateSkillScaleMark($input: UpdateSkillScaleMarkInput!) {
+  updateSkillScaleMark(input: $input) {
+    ...SkillMarkFields
+  }
+}
+
+mutation DeleteSkillScaleMark($input: DeleteSkillScaleMarkInput!) {
+  deleteSkillScaleMark(input: $input)
+}
+
+mutation CreateSkillCatalogFolder($input: CreateSkillCatalogFolderInput!) {
+  createSkillCatalogFolder(input: $input) {
+    ...CatalogNodeFields
+  }
+}
+
+mutation UpdateSkillCatalogFolder($input: UpdateSkillCatalogFolderInput!) {
+  updateSkillCatalogFolder(input: $input) {
+    ...CatalogNodeFields
+  }
+}
+
+mutation PlaceSkillInCatalog($input: PlaceSkillInCatalogInput!) {
+  placeSkillInCatalog(input: $input) {
+    ...CatalogNodeFields
+  }
+}
+
+mutation MoveSkillCatalogNode($input: MoveSkillCatalogNodeInput!) {
+  moveSkillCatalogNode(input: $input) {
+    ...CatalogNodeFields
+  }
+}
+
+mutation DeleteSkillCatalogNode($input: DeleteSkillCatalogNodeInput!) {
+  deleteSkillCatalogNode(input: $input)
+}
+
+mutation CreateCompetencyRole($input: CreateCompetencyRoleInput!) {
+  createCompetencyRole(input: $input) {
+    ...CompetencyRoleFields
+  }
+}
+
+mutation UpdateCompetencyRole($input: UpdateCompetencyRoleInput!) {
+  updateCompetencyRole(input: $input) {
+    ...CompetencyRoleFields
+  }
+}
+
+mutation AddSkillToCompetencyRole($input: AddSkillToCompetencyRoleInput!) {
+  addSkillToCompetencyRole(input: $input) {
+    ...CompetencyRoleSkillFields
+  }
+}
+
+mutation UpdateCompetencyRoleSkill($input: UpdateCompetencyRoleSkillInput!) {
+  updateCompetencyRoleSkill(input: $input) {
+    ...CompetencyRoleSkillFields
+  }
+}
+
+mutation RemoveSkillFromCompetencyRole($input: RemoveSkillFromCompetencyRoleInput!) {
+  removeSkillFromCompetencyRole(input: $input)
+}
+
+mutation SetRoleSkillGradeTarget($input: SetRoleSkillGradeTargetInput!) {
+  setRoleSkillGradeTarget(input: $input) {
+    ...RoleSkillGradeTargetFields
+  }
+}

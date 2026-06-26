@@ -1,389 +1,223 @@
+import { relations, sql } from 'drizzle-orm';
 import {
   boolean,
   check,
   index,
   integer,
-  jsonb,
-  numeric,
   pgEnum,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
 
-export const sourceKind = pgEnum('source_kind', [
-  'system_seed',
-  'organization_custom',
-  'imported',
-  'external_mapping',
-]);
+export const skillCatalogNodeKind = pgEnum('skill_catalog_node_kind', ['FOLDER', 'SKILL']);
 
-export const validationStatus = pgEnum('validation_status', ['draft', 'reviewed', 'validated']);
-export const assessmentSource = pgEnum('assessment_source', ['self', 'manager', 'expert', 'final']);
-export const criticality = pgEnum('criticality', ['low', 'medium', 'high']);
+function createdUpdatedColumns() {
+  return {
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  };
+}
 
-export const organizationStatus = pgEnum('organization_status', ['active', 'archived']);
-export const orgUnitType = pgEnum('org_unit_type', ['company', 'department', 'team']);
-export const orgUnitStatus = pgEnum('org_unit_status', ['active', 'archived']);
-export const systemRole = pgEnum('system_role', ['employee', 'manager', 'expert', 'hr', 'methodology_admin']);
-export const userStatus = pgEnum('user_status', ['active', 'disabled']);
-export const assignmentStatus = pgEnum('assignment_status', ['active', 'archived']);
-export const calibrationSessionStatus = pgEnum('calibration_session_status', ['open', 'closed']);
-export const levelDimension = pgEnum('level_dimension', [
-  'autonomy',
-  'complexity',
-  'influence',
-  'support',
-  'impact',
-]);
-export const methodologyStatus = pgEnum('methodology_status', ['draft', 'active', 'archived']);
-export const auditAction = pgEnum('audit_action', [
-  'person_created',
-  'assignment_created',
-  'assignment_archived',
-  'scoring_rule_default_set',
-  'competencies_imported',
-  'assessment_finalized',
-  'matrix_activated',
-  'calibration_decision_added',
-]);
+export const grades = pgTable(
+  'grades',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    sortOrder: integer('sort_order').notNull(),
+    createdByUserId: text('created_by_user_id').notNull(),
+    ...createdUpdatedColumns(),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('grades_name_unique').on(table.name),
+    index('grades_sort_order_idx').on(table.sortOrder),
+    check('grades_sort_order_positive', sql`${table.sortOrder} > 0`),
+  ],
+);
 
-export const organizations = pgTable('organizations', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  status: organizationStatus('status').notNull().default('active'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
+export const skills = pgTable(
+  'skills',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    description: text('description').notNull().default(''),
+    scaleMin: integer('scale_min').notNull(),
+    scaleMax: integer('scale_max').notNull(),
+    scaleStep: integer('scale_step').notNull(),
+    createdByUserId: text('created_by_user_id').notNull(),
+    ...createdUpdatedColumns(),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('skills_name_unique').on(table.name),
+    check('skills_scale_range', sql`${table.scaleMin} < ${table.scaleMax}`),
+    check('skills_scale_step_positive', sql`${table.scaleStep} > 0`),
+  ],
+);
 
-export const orgUnits = pgTable('org_units', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  parentId: text('parent_id'),
-  type: orgUnitType('type').notNull(),
-  name: text('name').notNull(),
-  status: orgUnitStatus('status').notNull().default('active'),
-}, (table) => [
-  index('org_units_organization_idx').on(table.organizationId),
-  index('org_units_parent_idx').on(table.parentId),
-  uniqueIndex('org_units_organization_parent_name_uq').on(table.organizationId, table.parentId, table.name),
-  check('org_units_no_self_parent', sql`${table.parentId} IS NULL OR ${table.parentId} <> ${table.id}`),
-]);
+export const skillScaleMarks = pgTable(
+  'skill_scale_marks',
+  {
+    id: text('id').primaryKey(),
+    skillId: text('skill_id')
+      .notNull()
+      .references(() => skills.id, { onDelete: 'cascade' }),
+    value: integer('value').notNull(),
+    label: text('label').notNull(),
+    description: text('description').notNull().default(''),
+    sortOrder: integer('sort_order').notNull(),
+  },
+  (table) => [
+    uniqueIndex('skill_scale_marks_skill_value_unique').on(table.skillId, table.value),
+    uniqueIndex('skill_scale_marks_skill_label_unique').on(table.skillId, table.label),
+    index('skill_scale_marks_skill_sort_idx').on(table.skillId, table.sortOrder),
+    check('skill_scale_marks_sort_order_positive', sql`${table.sortOrder} > 0`),
+  ],
+);
 
-export const people = pgTable('people', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  fullName: text('full_name').notNull(),
-  email: text('email').notNull(),
-  status: text('status').notNull().default('active'),
-}, (table) => [
-  uniqueIndex('people_email_uq').on(table.email),
-  index('people_organization_idx').on(table.organizationId),
-]);
+export const skillCatalogNodes = pgTable(
+  'skill_catalog_nodes',
+  {
+    id: text('id').primaryKey(),
+    parentId: text('parent_id').references((): AnyPgColumn => skillCatalogNodes.id, { onDelete: 'set null' }),
+    kind: skillCatalogNodeKind('kind').notNull(),
+    folderName: text('folder_name'),
+    skillId: text('skill_id').references(() => skills.id, { onDelete: 'restrict' }),
+    sortOrder: integer('sort_order').notNull(),
+    createdByUserId: text('created_by_user_id').notNull(),
+    ...createdUpdatedColumns(),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('skill_catalog_nodes_skill_unique').on(table.skillId),
+    index('skill_catalog_nodes_parent_sort_idx').on(table.parentId, table.sortOrder),
+    check(
+      'skill_catalog_nodes_kind_shape',
+      sql`(
+        (${table.kind} = 'FOLDER' and ${table.folderName} is not null and ${table.skillId} is null)
+        or (${table.kind} = 'SKILL' and ${table.skillId} is not null and ${table.folderName} is null)
+      )`,
+    ),
+    check('skill_catalog_nodes_sort_order_positive', sql`${table.sortOrder} > 0`),
+  ],
+);
 
-export const users = pgTable('users', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  personId: text('person_id').references(() => people.id),
-  email: text('email').notNull(),
-  role: systemRole('role').notNull(),
-  status: userStatus('status').notNull().default('active'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  uniqueIndex('users_email_uq').on(table.email),
-  index('users_organization_idx').on(table.organizationId),
-  index('users_person_idx').on(table.personId),
-]);
+export const competencyRoles = pgTable(
+  'competency_roles',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    description: text('description').notNull().default(''),
+    createdByUserId: text('created_by_user_id').notNull(),
+    ...createdUpdatedColumns(),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+  },
+  (table) => [uniqueIndex('competency_roles_name_unique').on(table.name)],
+);
 
-export const roleFamilies = pgTable('role_families', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  name: text('name').notNull(),
-}, (table) => [
-  uniqueIndex('role_families_organization_name_uq').on(table.organizationId, table.name),
-]);
+export const competencyRoleSkills = pgTable(
+  'competency_role_skills',
+  {
+    id: text('id').primaryKey(),
+    roleId: text('role_id')
+      .notNull()
+      .references(() => competencyRoles.id, { onDelete: 'cascade' }),
+    skillId: text('skill_id')
+      .notNull()
+      .references(() => skills.id, { onDelete: 'restrict' }),
+    sortOrder: integer('sort_order').notNull(),
+    isRequired: boolean('is_required').notNull().default(true),
+    createdByUserId: text('created_by_user_id').notNull(),
+    ...createdUpdatedColumns(),
+  },
+  (table) => [
+    uniqueIndex('competency_role_skills_role_skill_unique').on(table.roleId, table.skillId),
+    index('competency_role_skills_role_sort_idx').on(table.roleId, table.sortOrder),
+    check('competency_role_skills_sort_order_positive', sql`${table.sortOrder} > 0`),
+  ],
+);
 
-export const roles = pgTable('roles', {
-  id: text('id').primaryKey(),
-  roleFamilyId: text('role_family_id').notNull().references(() => roleFamilies.id),
-  name: text('name').notNull(),
-}, (table) => [
-  uniqueIndex('roles_family_name_uq').on(table.roleFamilyId, table.name),
-]);
+export const roleSkillGradeTargets = pgTable(
+  'role_skill_grade_targets',
+  {
+    id: text('id').primaryKey(),
+    roleSkillId: text('role_skill_id')
+      .notNull()
+      .references(() => competencyRoleSkills.id, { onDelete: 'cascade' }),
+    gradeId: text('grade_id')
+      .notNull()
+      .references(() => grades.id, { onDelete: 'restrict' }),
+    targetValue: integer('target_value').notNull(),
+    createdByUserId: text('created_by_user_id').notNull(),
+    ...createdUpdatedColumns(),
+  },
+  (table) => [
+    uniqueIndex('role_skill_grade_targets_role_skill_grade_unique').on(table.roleSkillId, table.gradeId),
+    index('role_skill_grade_targets_grade_idx').on(table.gradeId),
+  ],
+);
 
-export const grades = pgTable('grades', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  name: text('name').notNull(),
-  rank: integer('rank').notNull(),
-}, (table) => [
-  uniqueIndex('grades_organization_rank_uq').on(table.organizationId, table.rank),
-  uniqueIndex('grades_organization_name_uq').on(table.organizationId, table.name),
-]);
+export const gradesRelations = relations(grades, ({ many }) => ({
+  roleSkillTargets: many(roleSkillGradeTargets),
+}));
 
-export const roleProfiles = pgTable('role_profiles', {
-  id: text('id').primaryKey(),
-  roleId: text('role_id').notNull().references(() => roles.id),
-  gradeId: text('grade_id').notNull().references(() => grades.id),
-  name: text('name').notNull(),
-  description: text('description').notNull().default(''),
-}, (table) => [
-  uniqueIndex('role_profiles_role_grade_uq').on(table.roleId, table.gradeId),
-]);
+export const skillsRelations = relations(skills, ({ many, one }) => ({
+  marks: many(skillScaleMarks),
+  catalogNode: one(skillCatalogNodes, {
+    fields: [skills.id],
+    references: [skillCatalogNodes.skillId],
+  }),
+  roleSkills: many(competencyRoleSkills),
+}));
 
-export const levelDefinitions = pgTable('level_definitions', {
-  value: integer('value').primaryKey(),
-  scaleId: text('scale_id').references(() => levelScales.id),
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-});
+export const skillScaleMarksRelations = relations(skillScaleMarks, ({ one }) => ({
+  skill: one(skills, {
+    fields: [skillScaleMarks.skillId],
+    references: [skills.id],
+  }),
+}));
 
-export const levelScales = pgTable('level_scales', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  name: text('name').notNull(),
-  isDefault: boolean('is_default').notNull().default(false),
-  status: methodologyStatus('status').notNull().default('active'),
-}, (table) => [
-  index('level_scales_organization_idx').on(table.organizationId),
-  uniqueIndex('level_scales_organization_default_uq').on(table.organizationId, table.isDefault),
-]);
+export const skillCatalogNodesRelations = relations(skillCatalogNodes, ({ many, one }) => ({
+  parent: one(skillCatalogNodes, {
+    fields: [skillCatalogNodes.parentId],
+    references: [skillCatalogNodes.id],
+    relationName: 'catalog_tree',
+  }),
+  children: many(skillCatalogNodes, {
+    relationName: 'catalog_tree',
+  }),
+  skill: one(skills, {
+    fields: [skillCatalogNodes.skillId],
+    references: [skills.id],
+  }),
+}));
 
-export const levelDimensionDescriptors = pgTable('level_dimension_descriptors', {
-  id: text('id').primaryKey(),
-  scaleId: text('scale_id').notNull().references(() => levelScales.id),
-  levelValue: integer('level_value').notNull(),
-  dimension: levelDimension('dimension').notNull(),
-  description: text('description').notNull(),
-}, (table) => [
-  index('level_dimension_descriptors_scale_idx').on(table.scaleId),
-  uniqueIndex('level_dimension_descriptors_scale_level_dim_uq').on(table.scaleId, table.levelValue, table.dimension),
-]);
+export const competencyRolesRelations = relations(competencyRoles, ({ many }) => ({
+  skills: many(competencyRoleSkills),
+}));
 
-export const scoringRules = pgTable('scoring_rules', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  name: text('name').notNull(),
-  confidenceThreshold: numeric('confidence_threshold', { precision: 3, scale: 2 }).notNull(),
-  isDefault: boolean('is_default').notNull().default(false),
-  status: methodologyStatus('status').notNull().default('active'),
-}, (table) => [
-  index('scoring_rules_organization_idx').on(table.organizationId),
-  uniqueIndex('scoring_rules_organization_default_uq').on(table.organizationId, table.isDefault),
-]);
+export const competencyRoleSkillsRelations = relations(competencyRoleSkills, ({ many, one }) => ({
+  role: one(competencyRoles, {
+    fields: [competencyRoleSkills.roleId],
+    references: [competencyRoles.id],
+  }),
+  skill: one(skills, {
+    fields: [competencyRoleSkills.skillId],
+    references: [skills.id],
+  }),
+  gradeTargets: many(roleSkillGradeTargets),
+}));
 
-export const assignments = pgTable('assignments', {
-  id: text('id').primaryKey(),
-  personId: text('person_id').notNull().references(() => people.id),
-  orgUnitId: text('org_unit_id').notNull().references(() => orgUnits.id),
-  managerPersonId: text('manager_person_id').references(() => people.id),
-  roleProfileId: text('role_profile_id').notNull().references(() => roleProfiles.id),
-  effectiveFrom: timestamp('effective_from', { withTimezone: true }).notNull(),
-  effectiveTo: timestamp('effective_to', { withTimezone: true }),
-  status: assignmentStatus('status').notNull().default('active'),
-}, (table) => [
-  index('assignments_person_idx').on(table.personId),
-  index('assignments_org_unit_idx').on(table.orgUnitId),
-  index('assignments_manager_idx').on(table.managerPersonId),
-  index('assignments_role_profile_idx').on(table.roleProfileId),
-  index('assignments_status_idx').on(table.status),
-]);
-
-export const roleTasks = pgTable('role_tasks', {
-  id: text('id').primaryKey(),
-  roleProfileId: text('role_profile_id').notNull().references(() => roleProfiles.id),
-  name: text('name').notNull(),
-  expectedOutcome: text('expected_outcome').notNull(),
-  criticality: criticality('criticality').notNull(),
-}, (table) => [
-  index('role_tasks_role_profile_idx').on(table.roleProfileId),
-]);
-
-export const competencyCategories = pgTable('competency_categories', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  parentId: text('parent_id'),
-  categoryType: text('category_type').notNull(),
-  name: text('name').notNull(),
-  description: text('description').notNull().default(''),
-  sourceKind: sourceKind('source_kind').notNull(),
-  sourceRef: text('source_ref'),
-  templateNodeId: text('template_node_id'),
-  sortOrder: integer('sort_order').notNull().default(0),
-  status: text('status').notNull().default('active'),
-}, (table) => [
-  index('competency_categories_organization_idx').on(table.organizationId),
-  index('competency_categories_parent_idx').on(table.parentId),
-  uniqueIndex('competency_categories_organization_name_uq').on(table.organizationId, table.name),
-]);
-
-export const competencies = pgTable('competencies', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  categoryId: text('category_id').notNull().references(() => competencyCategories.id),
-  code: text('code').notNull(),
-  name: text('name').notNull(),
-  description: text('description').notNull().default(''),
-  sourceKind: sourceKind('source_kind').notNull(),
-  sourceRef: text('source_ref'),
-  templateCompetencyId: text('template_competency_id'),
-  validationStatus: validationStatus('validation_status').notNull().default('draft'),
-  tags: jsonb('tags').notNull().default([]),
-  behavioralIndicators: jsonb('behavioral_indicators').notNull().default([]),
-}, (table) => [
-  index('competencies_organization_idx').on(table.organizationId),
-  index('competencies_category_idx').on(table.categoryId),
-  uniqueIndex('competencies_organization_code_uq').on(table.organizationId, table.code),
-]);
-
-export const competencyRelations = pgTable('competency_relations', {
-  id: text('id').primaryKey(),
-  sourceCompetencyId: text('source_competency_id').notNull().references(() => competencies.id),
-  targetCompetencyId: text('target_competency_id').notNull().references(() => competencies.id),
-  relationType: text('relation_type').notNull(),
-  strength: numeric('strength', { precision: 3, scale: 2 }).notNull(),
-}, (table) => [
-  index('competency_relations_source_idx').on(table.sourceCompetencyId),
-  index('competency_relations_target_idx').on(table.targetCompetencyId),
-  uniqueIndex('competency_relations_edge_uq').on(table.sourceCompetencyId, table.targetCompetencyId, table.relationType),
-]);
-
-export const taskCompetencyLinks = pgTable('task_competency_links', {
-  id: text('id').primaryKey(),
-  roleTaskId: text('role_task_id').notNull().references(() => roleTasks.id),
-  competencyId: text('competency_id').notNull().references(() => competencies.id),
-  criticality: criticality('criticality').notNull(),
-  neededOnEntry: boolean('needed_on_entry').notNull().default(false),
-}, (table) => [
-  index('task_competency_links_role_task_idx').on(table.roleTaskId),
-  index('task_competency_links_competency_idx').on(table.competencyId),
-  uniqueIndex('task_competency_links_task_competency_uq').on(table.roleTaskId, table.competencyId),
-]);
-
-export const matrices = pgTable('matrices', {
-  id: text('id').primaryKey(),
-  roleProfileId: text('role_profile_id').notNull().references(() => roleProfiles.id),
-  name: text('name').notNull(),
-  status: text('status').notNull().default('draft'),
-  activeRevisionId: text('active_revision_id'),
-}, (table) => [
-  index('matrices_role_profile_idx').on(table.roleProfileId),
-]);
-
-export const matrixRevisions = pgTable('matrix_revisions', {
-  id: text('id').primaryKey(),
-  matrixId: text('matrix_id').notNull().references(() => matrices.id),
-  version: integer('version').notNull(),
-  activatedAt: timestamp('activated_at', { withTimezone: true }),
-}, (table) => [
-  uniqueIndex('matrix_revisions_matrix_version_uq').on(table.matrixId, table.version),
-]);
-
-export const matrixRequirements = pgTable('matrix_requirements', {
-  id: text('id').primaryKey(),
-  matrixRevisionId: text('matrix_revision_id').notNull().references(() => matrixRevisions.id),
-  competencyId: text('competency_id').notNull().references(() => competencies.id),
-  targetLevel: integer('target_level').notNull(),
-  required: boolean('required').notNull().default(true),
-  normalizedWeight: numeric('normalized_weight', { precision: 5, scale: 4 }).notNull(),
-  weightSource: text('weight_source').notNull(),
-  criticality: criticality('criticality').notNull(),
-  neededOnEntry: boolean('needed_on_entry').notNull().default(false),
-  taskCompetencyLinkId: text('task_competency_link_id').references(() => taskCompetencyLinks.id),
-}, (table) => [
-  index('matrix_requirements_competency_idx').on(table.competencyId),
-  index('matrix_requirements_task_link_idx').on(table.taskCompetencyLinkId),
-  uniqueIndex('matrix_requirements_revision_competency_uq').on(table.matrixRevisionId, table.competencyId),
-]);
-
-export const assessments = pgTable('assessments', {
-  id: text('id').primaryKey(),
-  personId: text('person_id').notNull().references(() => people.id),
-  roleProfileId: text('role_profile_id').notNull().references(() => roleProfiles.id),
-  matrixRevisionId: text('matrix_revision_id').notNull().references(() => matrixRevisions.id),
-  status: text('status').notNull().default('draft'),
-}, (table) => [
-  index('assessments_person_idx').on(table.personId),
-  index('assessments_role_profile_idx').on(table.roleProfileId),
-  uniqueIndex('assessments_person_revision_uq').on(table.personId, table.matrixRevisionId),
-]);
-
-export const assessmentScores = pgTable('assessment_scores', {
-  id: text('id').primaryKey(),
-  assessmentId: text('assessment_id').notNull().references(() => assessments.id),
-  competencyId: text('competency_id').notNull().references(() => competencies.id),
-  source: assessmentSource('source').notNull(),
-  level: integer('level').notNull(),
-  confidence: numeric('confidence', { precision: 3, scale: 2 }).notNull(),
-  verificationStatus: text('verification_status').notNull(),
-  comment: text('comment').notNull().default(''),
-}, (table) => [
-  index('assessment_scores_competency_idx').on(table.competencyId),
-  uniqueIndex('assessment_scores_assessment_competency_source_uq').on(table.assessmentId, table.competencyId, table.source),
-]);
-
-export const developmentPlans = pgTable('development_plans', {
-  id: text('id').primaryKey(),
-  personId: text('person_id').notNull().references(() => people.id),
-  assessmentId: text('assessment_id').notNull().references(() => assessments.id),
-}, (table) => [
-  index('development_plans_person_idx').on(table.personId),
-  uniqueIndex('development_plans_assessment_uq').on(table.assessmentId),
-]);
-
-export const developmentPlanItems = pgTable('development_plan_items', {
-  id: text('id').primaryKey(),
-  developmentPlanId: text('development_plan_id').notNull().references(() => developmentPlans.id),
-  competencyId: text('competency_id').notNull().references(() => competencies.id),
-  gap: integer('gap').notNull(),
-  title: text('title').notNull(),
-  ownerPersonId: text('owner_person_id').notNull().references(() => people.id),
-  status: text('status').notNull(),
-  dueDate: timestamp('due_date', { withTimezone: true }).notNull(),
-}, (table) => [
-  index('development_plan_items_plan_idx').on(table.developmentPlanId),
-  index('development_plan_items_competency_idx').on(table.competencyId),
-  index('development_plan_items_owner_idx').on(table.ownerPersonId),
-]);
-
-export const calibrationSessions = pgTable('calibration_sessions', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  name: text('name').notNull(),
-  status: calibrationSessionStatus('status').notNull().default('open'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  index('calibration_sessions_organization_idx').on(table.organizationId),
-]);
-
-export const calibrationDecisions = pgTable('calibration_decisions', {
-  id: text('id').primaryKey(),
-  sessionId: text('session_id').notNull().references(() => calibrationSessions.id),
-  assessmentScoreId: text('assessment_score_id').notNull().references(() => assessmentScores.id),
-  originalLevel: integer('original_level').notNull(),
-  calibratedLevel: integer('calibrated_level').notNull(),
-  reason: text('reason').notNull().default(''),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  index('calibration_decisions_session_idx').on(table.sessionId),
-  uniqueIndex('calibration_decisions_session_score_uq').on(table.sessionId, table.assessmentScoreId),
-]);
-
-export const auditEvents = pgTable('audit_events', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull().references(() => organizations.id),
-  actorUserId: text('actor_user_id'),
-  actorPersonId: text('actor_person_id'),
-  action: auditAction('action').notNull(),
-  entityType: text('entity_type').notNull(),
-  entityId: text('entity_id').notNull(),
-  summary: text('summary').notNull().default(''),
-  metadata: jsonb('metadata').notNull().default({}),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  index('audit_events_organization_idx').on(table.organizationId),
-  index('audit_events_entity_idx').on(table.entityType, table.entityId),
-  index('audit_events_actor_idx').on(table.actorUserId),
-  index('audit_events_created_idx').on(table.createdAt),
-]);
+export const roleSkillGradeTargetsRelations = relations(roleSkillGradeTargets, ({ one }) => ({
+  roleSkill: one(competencyRoleSkills, {
+    fields: [roleSkillGradeTargets.roleSkillId],
+    references: [competencyRoleSkills.id],
+  }),
+  grade: one(grades, {
+    fields: [roleSkillGradeTargets.gradeId],
+    references: [grades.id],
+  }),
+}));

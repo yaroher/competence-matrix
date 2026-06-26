@@ -4,20 +4,15 @@
     "module": "ES2022",
     "moduleResolution": "Bundler",
     "target": "ES2022",
-    "useDefineForClassFields": false,
-    "experimentalDecorators": true,
-    "strictPropertyInitialization": false,
+    "jsx": "react-jsx",
     "declaration": false,
     "declarationMap": false,
-    "types": [],
+    "noEmit": true,
+    "types": ["node", "vite/client"],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/app/*"]
+      "@/*": ["./src/*"]
     }
   },
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    }
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
 }

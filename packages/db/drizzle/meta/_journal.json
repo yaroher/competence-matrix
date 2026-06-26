@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1781988852531,
-      "tag": "0000_chemical_thundra",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1782127723236,
-      "tag": "0001_cute_loki",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1782129283078,
-      "tag": "0002_omniscient_queen_noir",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1782130241945,
-      "tag": "0003_melodic_captain_marvel",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1782133620981,
-      "tag": "0004_late_squirrel_girl",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1782136285317,
-      "tag": "0005_first_gorilla_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1782137947454,
-      "tag": "0006_glossy_mattie_franklin",
+      "when": 1782467270372,
+      "tag": "0000_empty_valkyrie",
       "breakpoints": true
     }
   ]

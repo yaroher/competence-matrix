@@ -1,20 +1,37 @@
 import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { createDb, createPool } from '@comatrix/db';
+import { DomainError } from '@comatrix/domain';
+import { GraphQLError } from 'graphql';
 import { createYoga } from 'graphql-yoga';
 import { config } from './config.js';
-import { loadMvpDataSource } from './data.js';
-import { createComatrixContext, createExecutableSchema } from './resolvers.js';
+import { createDrizzleCatalogRepository } from './catalog-repository.js';
+import { createAppContext, createExecutableSchema } from './resolvers.js';
 
-const mvpData = await loadMvpDataSource(config.COMATRIX_DATA_SOURCE, config.COMATRIX_DATABASE_URL);
+const pool = createPool();
+const repository = createDrizzleCatalogRepository(createDb(pool));
 const yoga = createYoga({
-  schema: createExecutableSchema(mvpData),
+  schema: createExecutableSchema(repository),
   graphqlEndpoint: '/graphql',
   cors: {
-    origin: ['http://localhost:4200'],
+    origin: ['http://localhost:4200', 'http://localhost:5173'],
     credentials: false,
   },
-  context: createComatrixContext(),
+  context: createAppContext(),
+  maskedErrors: {
+    // Surface domain validation messages; keep everything else masked.
+    maskError(error: unknown, message: string) {
+      const original =
+        error && typeof error === 'object' && 'originalError' in error
+          ? (error as { originalError?: unknown }).originalError
+          : error;
+      if (original instanceof DomainError) {
+        return new GraphQLError(original.message);
+      }
+      return new GraphQLError(message);
+    },
+  },
 });
 
 const WEB_DIST = process.env.COMATRIX_WEB_DIST ?? join(process.cwd(), '../web/dist/web/browser');
@@ -46,6 +63,7 @@ async function serveWeb(request: http.IncomingMessage, response: http.ServerResp
   const urlPath = decodeURIComponent((request.url ?? '/').split('?')[0]);
   const safe = normalize('.' + urlPath).replace(/^([/\\]\.\.[/\\])+/, '');
   const candidate = join(WEB_DIST, safe);
+
   try {
     const info = await stat(candidate);
     if (info.isFile()) {
@@ -57,6 +75,7 @@ async function serveWeb(request: http.IncomingMessage, response: http.ServerResp
   } catch {
     // fall through to SPA index
   }
+
   try {
     const index = await readFile(join(WEB_DIST, 'index.html'));
     response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -70,27 +89,27 @@ async function serveWeb(request: http.IncomingMessage, response: http.ServerResp
 const server = http.createServer((request, response) => {
   if (request.method === 'GET' && request.url === '/healthz') {
     response.writeHead(200, { 'content-type': 'application/json' });
-    response.end(
-      JSON.stringify({
-        ok: true,
-        service: 'comatrix-api',
-        dataSource: config.COMATRIX_DATA_SOURCE,
-      }),
-    );
+    response.end(JSON.stringify({ ok: true, service: 'comatrix-api' }));
     return;
   }
 
   if (request.method === 'GET' && request.url === '/readyz') {
-    const ready = mvpData.organization?.id !== undefined;
-    response.writeHead(ready ? 200 : 503, { 'content-type': 'application/json' });
-    response.end(
-      JSON.stringify({
-        ready,
-        service: 'comatrix-api',
-        dataSource: config.COMATRIX_DATA_SOURCE,
-        organizationId: mvpData.organization?.id ?? null,
-      }),
-    );
+    repository
+      .ping()
+      .then(() => {
+        response.writeHead(200, { 'content-type': 'application/json' });
+        response.end(JSON.stringify({ ready: true, service: 'comatrix-api' }));
+      })
+      .catch((error: unknown) => {
+        response.writeHead(503, { 'content-type': 'application/json' });
+        response.end(
+          JSON.stringify({
+            ready: false,
+            service: 'comatrix-api',
+            error: error instanceof Error ? error.message : 'unknown database error',
+          }),
+        );
+      });
     return;
   }
 
@@ -122,7 +141,6 @@ server.listen(config.COMATRIX_API_PORT, '0.0.0.0', () => {
   log('info', 'api.listening', {
     port: config.COMATRIX_API_PORT,
     host: '0.0.0.0',
-    dataSource: config.COMATRIX_DATA_SOURCE,
     webDist: WEB_DIST,
   });
 });
