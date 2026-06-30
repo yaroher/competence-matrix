@@ -6,6 +6,14 @@ type Query {
   skillCatalogTree: [SkillCatalogNode!]!
   competencyRoles: [CompetencyRole!]!
   competencyRole(id: ID!): CompetencyRole
+  me: Viewer
+  permissions: [Permission!]!
+  appRoles: [AppRole!]!
+  employees: [Employee!]!
+  users: [AppUser!]!
+  myAssignments: [MatrixAssignment!]!
+  assignmentsForEmployee(employeeId: ID!): [MatrixAssignment!]!
+  assignment(id: ID!): MatrixAssignment
 }
 
 type Mutation {
@@ -27,6 +35,20 @@ type Mutation {
   updateCompetencyRoleSkill(input: UpdateCompetencyRoleSkillInput!): CompetencyRoleSkill!
   removeSkillFromCompetencyRole(input: RemoveSkillFromCompetencyRoleInput!): ID!
   setRoleSkillGradeTarget(input: SetRoleSkillGradeTargetInput!): RoleSkillGradeTarget!
+  login(input: LoginInput!): AuthPayload!
+  createAppRole(input: CreateAppRoleInput!): AppRole!
+  updateAppRole(input: UpdateAppRoleInput!): AppRole!
+  deleteAppRole(input: DeleteByIdInput!): ID!
+  createEmployee(input: CreateEmployeeInput!): Employee!
+  updateEmployee(input: UpdateEmployeeInput!): Employee!
+  deleteEmployee(input: DeleteByIdInput!): ID!
+  createUser(input: CreateUserInput!): AppUser!
+  updateUser(input: UpdateUserInput!): AppUser!
+  deleteUser(input: DeleteByIdInput!): ID!
+  assignMatrix(input: AssignMatrixInput!): MatrixAssignment!
+  updateAssignment(input: UpdateAssignmentInput!): MatrixAssignment!
+  removeAssignment(input: DeleteByIdInput!): ID!
+  setAssessment(input: SetAssessmentInput!): Assessment!
 }
 
 type Health {
@@ -240,4 +262,155 @@ input SetRoleSkillGradeTargetInput {
   gradeId: ID!
   targetValue: Int!
   createdByUserId: ID!
+}
+
+# --- access control, org tree, assignments, assessments ---
+
+enum Permission {
+  MANAGE_CATALOG
+  MANAGE_MATRICES
+  MANAGE_ORG
+  ASSIGN_MATRICES
+  MANAGE_USERS_ROLES
+  VIEW_ALL_ASSESSMENTS
+}
+
+enum AssessmentKind {
+  SELF
+  MANAGER
+}
+
+type AppRole {
+  id: ID!
+  name: String!
+  isSystem: Boolean!
+  permissions: [Permission!]!
+}
+
+type Employee {
+  id: ID!
+  fullName: String!
+  title: String!
+  managerId: ID
+  manager: Employee
+  reports: [Employee!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AppUser {
+  id: ID!
+  email: String!
+  displayName: String!
+  roleId: ID!
+  role: AppRole!
+  employeeId: ID
+  employee: Employee
+}
+
+type Viewer {
+  id: ID!
+  email: String!
+  displayName: String!
+  role: AppRole!
+  permissions: [Permission!]!
+  employee: Employee
+}
+
+type AuthPayload {
+  token: String!
+  user: Viewer!
+}
+
+type MatrixAssignment {
+  id: ID!
+  employeeId: ID!
+  employee: Employee!
+  roleId: ID!
+  role: CompetencyRole!
+  gradeId: ID!
+  grade: Grade!
+  assessments: [Assessment!]!
+  canAssessSelf: Boolean!
+  canAssessManager: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Assessment {
+  id: ID!
+  assignmentId: ID!
+  skillId: ID!
+  assessorUserId: ID!
+  assessorName: String!
+  kind: AssessmentKind!
+  value: Int!
+  updatedAt: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input DeleteByIdInput {
+  id: ID!
+}
+
+input CreateAppRoleInput {
+  name: String!
+  permissions: [Permission!]!
+}
+
+input UpdateAppRoleInput {
+  id: ID!
+  name: String
+  permissions: [Permission!]
+}
+
+input CreateEmployeeInput {
+  fullName: String!
+  title: String
+  managerId: ID
+}
+
+input UpdateEmployeeInput {
+  id: ID!
+  fullName: String
+  title: String
+  managerId: ID
+}
+
+input CreateUserInput {
+  email: String!
+  password: String!
+  displayName: String!
+  roleId: ID!
+  employeeId: ID
+}
+
+input UpdateUserInput {
+  id: ID!
+  email: String
+  displayName: String
+  password: String
+  roleId: ID
+  employeeId: ID
+}
+
+input AssignMatrixInput {
+  employeeId: ID!
+  roleId: ID!
+  gradeId: ID!
+}
+
+input UpdateAssignmentInput {
+  id: ID!
+  gradeId: ID!
+}
+
+input SetAssessmentInput {
+  assignmentId: ID!
+  skillId: ID!
+  value: Int!
 }

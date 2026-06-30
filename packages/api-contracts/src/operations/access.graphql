@@ -1,0 +1,210 @@
+fragment AppRoleFields on AppRole {
+  id
+  name
+  isSystem
+  permissions
+}
+
+fragment EmployeeFields on Employee {
+  id
+  fullName
+  title
+  managerId
+}
+
+fragment AppUserFields on AppUser {
+  id
+  email
+  displayName
+  roleId
+  employeeId
+  role {
+    ...AppRoleFields
+  }
+  employee {
+    ...EmployeeFields
+  }
+}
+
+fragment ViewerFields on Viewer {
+  id
+  email
+  displayName
+  permissions
+  role {
+    ...AppRoleFields
+  }
+  employee {
+    ...EmployeeFields
+  }
+}
+
+fragment AssessmentFields on Assessment {
+  id
+  assignmentId
+  skillId
+  assessorUserId
+  assessorName
+  kind
+  value
+  updatedAt
+}
+
+fragment AssignmentFields on MatrixAssignment {
+  id
+  employeeId
+  roleId
+  gradeId
+  canAssessSelf
+  canAssessManager
+  employee {
+    ...EmployeeFields
+  }
+  grade {
+    id
+    name
+  }
+  role {
+    id
+    name
+    skills {
+      id
+      skillId
+      isRequired
+      sortOrder
+      skill {
+        id
+        name
+        scaleMin
+        scaleMax
+        scaleStep
+        marks {
+          ...SkillMarkFields
+        }
+      }
+      gradeTargets {
+        gradeId
+        targetValue
+      }
+    }
+  }
+  assessments {
+    ...AssessmentFields
+  }
+}
+
+query Me {
+  me {
+    ...ViewerFields
+  }
+}
+
+query AccessSnapshot {
+  permissions
+  appRoles {
+    ...AppRoleFields
+  }
+  employees {
+    ...EmployeeFields
+  }
+  users {
+    ...AppUserFields
+  }
+}
+
+query MyAssignments {
+  myAssignments {
+    ...AssignmentFields
+  }
+}
+
+query AssignmentsForEmployee($employeeId: ID!) {
+  assignmentsForEmployee(employeeId: $employeeId) {
+    ...AssignmentFields
+  }
+}
+
+query Assignment($id: ID!) {
+  assignment(id: $id) {
+    ...AssignmentFields
+  }
+}
+
+mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    token
+    user {
+      ...ViewerFields
+    }
+  }
+}
+
+mutation CreateAppRole($input: CreateAppRoleInput!) {
+  createAppRole(input: $input) {
+    ...AppRoleFields
+  }
+}
+
+mutation UpdateAppRole($input: UpdateAppRoleInput!) {
+  updateAppRole(input: $input) {
+    ...AppRoleFields
+  }
+}
+
+mutation DeleteAppRole($input: DeleteByIdInput!) {
+  deleteAppRole(input: $input)
+}
+
+mutation CreateEmployee($input: CreateEmployeeInput!) {
+  createEmployee(input: $input) {
+    ...EmployeeFields
+  }
+}
+
+mutation UpdateEmployee($input: UpdateEmployeeInput!) {
+  updateEmployee(input: $input) {
+    ...EmployeeFields
+  }
+}
+
+mutation DeleteEmployee($input: DeleteByIdInput!) {
+  deleteEmployee(input: $input)
+}
+
+mutation CreateUser($input: CreateUserInput!) {
+  createUser(input: $input) {
+    ...AppUserFields
+  }
+}
+
+mutation UpdateUser($input: UpdateUserInput!) {
+  updateUser(input: $input) {
+    ...AppUserFields
+  }
+}
+
+mutation DeleteUser($input: DeleteByIdInput!) {
+  deleteUser(input: $input)
+}
+
+mutation AssignMatrix($input: AssignMatrixInput!) {
+  assignMatrix(input: $input) {
+    ...AssignmentFields
+  }
+}
+
+mutation UpdateAssignment($input: UpdateAssignmentInput!) {
+  updateAssignment(input: $input) {
+    ...AssignmentFields
+  }
+}
+
+mutation RemoveAssignment($input: DeleteByIdInput!) {
+  removeAssignment(input: $input)
+}
+
+mutation SetAssessment($input: SetAssessmentInput!) {
+  setAssessment(input: $input) {
+    ...AssessmentFields
+  }
+}

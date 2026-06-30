@@ -50,7 +50,8 @@ import { print } from 'graphql';
 import { createYoga } from 'graphql-yoga';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createDrizzleCatalogRepository } from './catalog-repository.js';
-import { createAppContext, createExecutableSchema } from './resolvers.js';
+import { createAccessRepository } from './access-repository.js';
+import { createExecutableSchema, type AppContext } from './resolvers.js';
 
 interface GraphQlResponse<T> {
   data?: T;
@@ -111,7 +112,18 @@ describeWithDatabase('GraphQL API schema with Postgres persistence', () => {
 
   function createTestYoga() {
     const repository = createDrizzleCatalogRepository(db);
-    return createYoga({ schema: createExecutableSchema(repository), context: createAppContext() });
+    const access = createAccessRepository(db);
+    const context: AppContext = {
+      viewer: {
+        userId: 'user-system',
+        email: 'system@test',
+        displayName: 'System',
+        roleId: 'role-admin',
+        permissions: ['MANAGE_CATALOG', 'MANAGE_MATRICES', 'MANAGE_ORG', 'ASSIGN_MATRICES', 'MANAGE_USERS_ROLES', 'VIEW_ALL_ASSESSMENTS'],
+        employeeId: null,
+      },
+    };
+    return createYoga({ schema: createExecutableSchema(repository, access, 'test-secret'), context: () => context }) as never;
   }
 
   it('returns API health', async () => {

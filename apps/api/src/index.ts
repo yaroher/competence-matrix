@@ -5,20 +5,42 @@ import { createDb, createPool } from '@comatrix/db';
 import { DomainError } from '@comatrix/domain';
 import { GraphQLError } from 'graphql';
 import { createYoga } from 'graphql-yoga';
+import jwt from 'jsonwebtoken';
 import { config } from './config.js';
 import { createDrizzleCatalogRepository } from './catalog-repository.js';
-import { createAppContext, createExecutableSchema } from './resolvers.js';
+import { createAccessRepository, type ViewerData } from './access-repository.js';
+import { createExecutableSchema, type AppContext } from './resolvers.js';
 
 const pool = createPool();
-const repository = createDrizzleCatalogRepository(createDb(pool));
+const db = createDb(pool);
+const repository = createDrizzleCatalogRepository(db);
+const access = createAccessRepository(db);
+const JWT_SECRET = process.env.COMATRIX_JWT_SECRET ?? 'comatrix-dev-secret-change-me';
+
 const yoga = createYoga({
-  schema: createExecutableSchema(repository),
+  schema: createExecutableSchema(repository, access, JWT_SECRET),
   graphqlEndpoint: '/graphql',
   cors: {
     origin: ['http://localhost:4200', 'http://localhost:5173'],
     credentials: false,
   },
-  context: createAppContext(),
+  context: async ({ request }): Promise<AppContext> => {
+    const header = request.headers.get('authorization') ?? '';
+    const token = header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : '';
+    if (!token) {
+      return { viewer: null };
+    }
+    let viewer: ViewerData | null = null;
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as { sub?: string };
+      if (payload.sub) {
+        viewer = await access.loadViewer(payload.sub);
+      }
+    } catch {
+      viewer = null;
+    }
+    return { viewer };
+  },
   maskedErrors: {
     // Surface domain validation messages; keep everything else masked.
     maskError(error: unknown, message: string) {
@@ -26,8 +48,12 @@ const yoga = createYoga({
         error && typeof error === 'object' && 'originalError' in error
           ? (error as { originalError?: unknown }).originalError
           : error;
+      // Surface domain validation + intentional GraphQLErrors (auth/forbidden); mask the rest.
       if (original instanceof DomainError) {
         return new GraphQLError(original.message);
+      }
+      if (error instanceof GraphQLError && error.extensions?.code) {
+        return error;
       }
       return new GraphQLError(message);
     },
