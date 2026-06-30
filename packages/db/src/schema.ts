@@ -6,6 +6,7 @@ import {
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -13,6 +14,15 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export const skillCatalogNodeKind = pgEnum('skill_catalog_node_kind', ['FOLDER', 'SKILL']);
+export const appPermission = pgEnum('app_permission', [
+  'MANAGE_CATALOG',
+  'MANAGE_MATRICES',
+  'MANAGE_ORG',
+  'ASSIGN_MATRICES',
+  'MANAGE_USERS_ROLES',
+  'VIEW_ALL_ASSESSMENTS',
+]);
+export const assessmentKind = pgEnum('assessment_kind', ['SELF', 'MANAGER']);
 
 function createdUpdatedColumns() {
   return {
@@ -159,6 +169,148 @@ export const roleSkillGradeTargets = pgTable(
     index('role_skill_grade_targets_grade_idx').on(table.gradeId),
   ],
 );
+
+// --- Access control, org tree, assignments, assessments ---
+
+export const appRoles = pgTable(
+  'app_roles',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    isSystem: boolean('is_system').notNull().default(false),
+    createdByUserId: text('created_by_user_id').notNull(),
+    ...createdUpdatedColumns(),
+  },
+  (table) => [uniqueIndex('app_roles_name_unique').on(table.name)],
+);
+
+export const rolePermissions = pgTable(
+  'role_permissions',
+  {
+    roleId: text('role_id')
+      .notNull()
+      .references(() => appRoles.id, { onDelete: 'cascade' }),
+    permission: appPermission('permission').notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.roleId, table.permission] })],
+);
+
+export const employees = pgTable(
+  'employees',
+  {
+    id: text('id').primaryKey(),
+    fullName: text('full_name').notNull(),
+    title: text('title').notNull().default(''),
+    managerId: text('manager_id').references((): AnyPgColumn => employees.id, { onDelete: 'set null' }),
+    createdByUserId: text('created_by_user_id').notNull(),
+    ...createdUpdatedColumns(),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+  },
+  (table) => [index('employees_manager_idx').on(table.managerId)],
+);
+
+export const appUsers = pgTable(
+  'users',
+  {
+    id: text('id').primaryKey(),
+    email: text('email').notNull(),
+    passwordHash: text('password_hash').notNull(),
+    displayName: text('display_name').notNull(),
+    roleId: text('role_id')
+      .notNull()
+      .references(() => appRoles.id, { onDelete: 'restrict' }),
+    employeeId: text('employee_id').references(() => employees.id, { onDelete: 'set null' }),
+    ...createdUpdatedColumns(),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('users_email_unique').on(table.email),
+    uniqueIndex('users_employee_unique').on(table.employeeId),
+  ],
+);
+
+export const matrixAssignments = pgTable(
+  'matrix_assignments',
+  {
+    id: text('id').primaryKey(),
+    employeeId: text('employee_id')
+      .notNull()
+      .references(() => employees.id, { onDelete: 'cascade' }),
+    roleId: text('role_id')
+      .notNull()
+      .references(() => competencyRoles.id, { onDelete: 'cascade' }),
+    gradeId: text('grade_id')
+      .notNull()
+      .references(() => grades.id, { onDelete: 'restrict' }),
+    createdByUserId: text('created_by_user_id').notNull(),
+    ...createdUpdatedColumns(),
+  },
+  (table) => [
+    uniqueIndex('matrix_assignments_employee_role_unique').on(table.employeeId, table.roleId),
+    index('matrix_assignments_employee_idx').on(table.employeeId),
+  ],
+);
+
+export const assessments = pgTable(
+  'assessments',
+  {
+    id: text('id').primaryKey(),
+    assignmentId: text('assignment_id')
+      .notNull()
+      .references(() => matrixAssignments.id, { onDelete: 'cascade' }),
+    skillId: text('skill_id')
+      .notNull()
+      .references(() => skills.id, { onDelete: 'cascade' }),
+    assessorUserId: text('assessor_user_id')
+      .notNull()
+      .references(() => appUsers.id, { onDelete: 'cascade' }),
+    kind: assessmentKind('kind').notNull(),
+    value: integer('value').notNull(),
+    ...createdUpdatedColumns(),
+  },
+  (table) => [
+    uniqueIndex('assessments_unique').on(table.assignmentId, table.skillId, table.assessorUserId),
+    index('assessments_assignment_idx').on(table.assignmentId),
+  ],
+);
+
+export const appRolesRelations = relations(appRoles, ({ many }) => ({
+  permissions: many(rolePermissions),
+  users: many(appUsers),
+}));
+
+export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
+  role: one(appRoles, { fields: [rolePermissions.roleId], references: [appRoles.id] }),
+}));
+
+export const employeesRelations = relations(employees, ({ one, many }) => ({
+  manager: one(employees, {
+    fields: [employees.managerId],
+    references: [employees.id],
+    relationName: 'org_tree',
+  }),
+  reports: many(employees, { relationName: 'org_tree' }),
+  user: one(appUsers, { fields: [employees.id], references: [appUsers.employeeId] }),
+  assignments: many(matrixAssignments),
+}));
+
+export const appUsersRelations = relations(appUsers, ({ one }) => ({
+  role: one(appRoles, { fields: [appUsers.roleId], references: [appRoles.id] }),
+  employee: one(employees, { fields: [appUsers.employeeId], references: [employees.id] }),
+}));
+
+export const matrixAssignmentsRelations = relations(matrixAssignments, ({ one, many }) => ({
+  employee: one(employees, { fields: [matrixAssignments.employeeId], references: [employees.id] }),
+  role: one(competencyRoles, { fields: [matrixAssignments.roleId], references: [competencyRoles.id] }),
+  grade: one(grades, { fields: [matrixAssignments.gradeId], references: [grades.id] }),
+  assessments: many(assessments),
+}));
+
+export const assessmentsRelations = relations(assessments, ({ one }) => ({
+  assignment: one(matrixAssignments, { fields: [assessments.assignmentId], references: [matrixAssignments.id] }),
+  skill: one(skills, { fields: [assessments.skillId], references: [skills.id] }),
+  assessor: one(appUsers, { fields: [assessments.assessorUserId], references: [appUsers.id] }),
+}));
 
 export const gradesRelations = relations(grades, ({ many }) => ({
   roleSkillTargets: many(roleSkillGradeTargets),
