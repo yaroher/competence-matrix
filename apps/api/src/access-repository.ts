@@ -142,6 +142,9 @@ export class AccessRepository {
     if (!existing) {
       throw new DomainError(`Неизвестная роль ${input.id}`);
     }
+    if (existing.isSystem) {
+      throw new DomainError('Системную роль нельзя изменять');
+    }
     if (input.name != null) {
       await this.db.update(appRoles).set({ name: input.name.trim(), updatedAt: new Date() }).where(eq(appRoles.id, input.id));
     }
@@ -250,6 +253,7 @@ export class AccessRepository {
       if (input.managerId === input.id) {
         throw new DomainError('Сотрудник не может быть своим руководителем');
       }
+      await this.getEmployee(input.managerId); // ensure manager exists
       const descendants = await this.descendantIds(input.id);
       if (descendants.has(input.managerId)) {
         throw new DomainError('Нельзя назначить руководителем своего подчинённого (цикл)');

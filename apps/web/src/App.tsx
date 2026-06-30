@@ -40,7 +40,7 @@ type ActionState = {
   message?: string;
 };
 
-export function App() {
+export function BuilderApp() {
   const { preference, setTheme } = useTheme();
   const [snapshot, setSnapshot] = useState<CatalogSnapshotVm | null>(null);
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -169,7 +169,7 @@ export function App() {
 
   return (
     <TooltipProvider>
-      <div className="flex h-dvh flex-col overflow-hidden bg-[var(--background-2)] text-foreground">
+      <div className="flex h-full flex-col overflow-hidden bg-[var(--background-2)] text-foreground">
         <header className="z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card/90 px-4 backdrop-blur">
           <div className="flex min-w-0 items-center gap-2.5">
             <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground shadow-[var(--shadow-primary)]">

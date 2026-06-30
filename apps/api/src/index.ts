@@ -16,6 +16,9 @@ const db = createDb(pool);
 const repository = createDrizzleCatalogRepository(db);
 const access = createAccessRepository(db);
 const JWT_SECRET = process.env.COMATRIX_JWT_SECRET ?? 'comatrix-dev-secret-change-me';
+if (process.env.NODE_ENV === 'production' && !process.env.COMATRIX_JWT_SECRET) {
+  throw new Error('COMATRIX_JWT_SECRET must be set in production');
+}
 
 const yoga = createYoga({
   schema: createExecutableSchema(repository, access, JWT_SECRET),

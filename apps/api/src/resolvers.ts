@@ -64,11 +64,20 @@ function viewerShape(v: ViewerData) {
 }
 
 export function createExecutableSchema(repository: CatalogRepository, access: AccessRepository, jwtSecret: string) {
-  const assessmentVisible = async (ctx: AppContext, assignmentEmployeeId: string) => {
+  // Can the viewer open this employee's assignment at all (self / manager / HR-admin).
+  const canAccessAssignment = async (ctx: AppContext, assignmentEmployeeId: string) => {
     const viewer = ctx.viewer;
     if (!viewer) return false;
     if (viewer.permissions.includes('VIEW_ALL_ASSESSMENTS')) return true;
     if (viewer.employeeId === assignmentEmployeeId) return true;
+    if (viewer.employeeId && (await access.ancestorIds(assignmentEmployeeId)).has(viewer.employeeId)) return true;
+    return false;
+  };
+  // Can the viewer see ALL assessments (managers above + HR-admin) — NOT the employee themself.
+  const canSeeAllAssessments = async (ctx: AppContext, assignmentEmployeeId: string) => {
+    const viewer = ctx.viewer;
+    if (!viewer) return false;
+    if (viewer.permissions.includes('VIEW_ALL_ASSESSMENTS')) return true;
     if (viewer.employeeId && (await access.ancestorIds(assignmentEmployeeId)).has(viewer.employeeId)) return true;
     return false;
   };
@@ -109,7 +118,7 @@ export function createExecutableSchema(repository: CatalogRepository, access: Ac
         },
         assignmentsForEmployee: async (_p: unknown, args: { employeeId: string }, ctx: AppContext) => {
           requireViewer(ctx);
-          if (!(await assessmentVisible(ctx, args.employeeId))) {
+          if (!(await canAccessAssignment(ctx, args.employeeId))) {
             throw new GraphQLError('Нет доступа к оценкам этого сотрудника', { extensions: { code: 'FORBIDDEN' } });
           }
           return access.listAssignmentsForEmployee(args.employeeId);
@@ -117,7 +126,7 @@ export function createExecutableSchema(repository: CatalogRepository, access: Ac
         assignment: async (_p: unknown, args: { id: string }, ctx: AppContext) => {
           requireViewer(ctx);
           const assignment = await access.getAssignment(args.id);
-          if (!(await assessmentVisible(ctx, assignment.employeeId))) {
+          if (!(await canAccessAssignment(ctx, assignment.employeeId))) {
             throw new GraphQLError('Нет доступа к этому назначению', { extensions: { code: 'FORBIDDEN' } });
           }
           return assignment;
@@ -243,7 +252,7 @@ export function createExecutableSchema(repository: CatalogRepository, access: Ac
         grade: (a: { gradeId: string }) => repository.getGrade(a.gradeId),
         assessments: async (a: { id: string; employeeId: string }, _args: unknown, ctx: AppContext) => {
           const all = await access.listAssessmentsForAssignment(a.id);
-          if (await assessmentVisible(ctx, a.employeeId)) {
+          if (await canSeeAllAssessments(ctx, a.employeeId)) {
             return all;
           }
           if (ctx.viewer && ctx.viewer.employeeId === a.employeeId) {

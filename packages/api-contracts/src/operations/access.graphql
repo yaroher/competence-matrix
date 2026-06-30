@@ -99,14 +99,20 @@ query Me {
   }
 }
 
-query AccessSnapshot {
-  permissions
-  appRoles {
-    ...AppRoleFields
-  }
+query Employees {
   employees {
     ...EmployeeFields
   }
+}
+
+query AppRoles {
+  appRoles {
+    ...AppRoleFields
+  }
+  permissions
+}
+
+query Users {
   users {
     ...AppUserFields
   }
